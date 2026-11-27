@@ -1,5 +1,15 @@
 # Journal des modifications
 
+## [5.165.0] — 2026-11-27
+Écrire un protocole sans que le bloc saute (A841-A843). Aucune mise à jour du serveur.
+- **Plus de rangée de boutons sous le bloc ouvert** : « ⋯ » (bloc après ou avant, déplacer, sélectionner, dupliquer,
+  supprimer) et « ✓ Terminé » sont au bout de la barre de mise en forme, à côté de « ＋ Insérer ». Ouvrir un paragraphe ne
+  fait plus descendre la suite que d'environ 18 px au bureau (66 avant).
+- **Au téléphone, les outils de la barre défilent** sous le doigt ; « ＋ » et « ✓ » restent fixes au bout.
+- **Un titre ouvert garde sa taille et sa graisse** ; « ## » reste visible dans le cadre. Taper « ## » au début d'un
+  paragraphe le fait aussitôt passer en titre.
+- **Glisser sur des mots les sélectionne** (pour les copier) sans ouvrir le bloc ; un simple clic l'ouvre toujours.
+
 ## [5.164.1] — 2026-11-27
 Le Plan s'affiche correctement (A840). Aucune mise à jour du serveur.
 - **Au bureau, le Plan ouvert depuis le titre de l'en-tête s'ouvre juste en dessous**, comme un menu ; il s'affichait en
@@ -231,8 +241,3 @@ plus avec les choix (A803). Aucune mise à jour du serveur.
 - **Le titre qui reste est posé** : plus petit (15 au lieu de 17,5), avec de l'air au-dessus et un filet qui le sépare des choix. Il ne se lit plus comme une rangée de plus. Tous les menus déroulants ont désormais la même tête que le menu des catégories.
 - **Rien ne se perd** : un titre ne disparaît que si les mêmes mots sont sur le bouton qu'on vient de toucher. La ligne de contexte, les notices et le champ de recherche restent, et les lecteurs d'écran annoncent toujours le nom du menu.
 - **Au téléphone, rien ne change** : les feuilles du bas gardent leur titre.
-
-## [5.150.2] — 2026-11-20
-Après une mise en veille, l'en-tête ne disparaît plus (A802). Aucune mise à jour du serveur.
-- **Le haut de l'écran revient au déverrouillage** (A802). Sur iPad et iPhone, après une mise en veille, l'en-tête pouvait rester caché : la page commençait sous l'heure, sans retour, sans « Enregistrer », et sans moyen d'y remonter. L'app croyait le clavier encore ouvert, car au réveil iOS signale parfois un écran raccourci, comme si un clavier était affiché. Elle ne le croit plus que si un champ de saisie est réellement actif. **À vérifier sur iPad et iPhone.**
-- Si un champ était en cours de saisie au moment de la veille, l'en-tête revient dès qu'on touche ailleurs que dans le champ.

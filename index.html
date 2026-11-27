@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-2RkrWMMIZi7MQBuBvlBbASM9c4BoTTmwv336UXo5Br8='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UV4fyKOkk67+y0PZ0M0I3K2hrEf8hYUPIcDOqhP9AM0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9443,7 +9443,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      la marge haute qui met sa première ligne là où était celle du rendu. Les pastilles du bloc passent SOUS le champ
      (`order`) : au-dessus, elles poussaient le texte ; l'aperçu d'une image reste au-dessus (il EST le rendu du bloc). */
   .mdb.on{margin:12px 0;display:flex;flex-direction:column}
-  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}.mdb.on>.mdb-acts{order:3}
+  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}
   .md-doc .mdb-hlw{position:relative;margin:0 calc(-10px - 1.5px)}   /* rembourrage + bordure du champ : son texte tombe au bord du rendu */
   .mdb-hlw .md-hl{display:none}
   /* A814 — le calque d'A459 dans le bloc ouvert, à la police du champ (Manrope, A550) : un titre ou un gras s'y noircit
@@ -9457,21 +9457,13 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:6px 10px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
   @media (pointer:coarse){.md-doc .mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
+  /* A843 : le champ (et son calque) à la taille et la graisse du titre qu'il écrit ; au doigt, jamais sous 16 px. */
+  .md-doc .mdb-hlw.ta-h1 :is(.mdb-ta,.md-hl){font-size:var(--t-step-l);font-weight:800;line-height:1.3}
+  .md-doc .mdb-hlw.ta-h2 :is(.mdb-ta,.md-hl){font-size:var(--t-step);font-weight:800;line-height:1.3}
+  .md-doc .mdb-hlw.ta-h3 :is(.mdb-ta,.md-hl){font-size:var(--t-body);font-weight:800;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
+  @media (pointer:coarse){.md-doc .mdb-hlw.ta-h3 .mdb-ta{font-size:16px}}
   .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
-  .mdb-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .mdb-acts .mdb-done{margin-left:auto}
-  /* A834 (planche « Modifier sans que ça saute ») — LA RANGÉE DU BLOC OUVERT TIENT SUR UNE LIGNE, TOUJOURS. À 390 px elle en
-     faisait trois (≈ 140 px) : ouvrir un bloc poussait la suite d'autant, et le paragraphe vide d'Entrée (« Terminé »
-     seul) gagnait ses six autres boutons au premier caractère (+92 px, mesuré). `acFit` mesure la rangée et la replie
-     par crans tant qu'elle passerait à la ligne : la touche de « Terminé » se raccourcit puis se tait (A829), puis
-     « Bloc avant », « Sélectionner », « Dupliquer », « Supprimer » passent dans « ⋯ » (ac1, « Bloc après » devient
-     « Bloc »), puis « Déplacer » et « Bloc » gardent leur seul glyphe (ac2). Au bureau large, rien ne change. */
-  .mdb-acts .ac-more{display:none;min-width:40px;padding:0;justify-content:center;font-weight:800}
-  .mdb-acts.ac1 .ac-x,.mdb-acts.ac1 .ac-w2{display:none}
-  .mdb-acts.ac1 .ac-more{display:inline-flex}
-  .mdb-acts .ac-grab .ac-w{margin-left:4px}
-  .mdb-acts.ac2 .ac-w{display:none}
-  .mdb-acts.ac2 :is(.ac-grab,.ac-ap){min-width:40px;padding:0;justify-content:center}
+  /* A834 (rangée du bloc ouvert sur une ligne) : RANGÉE RETIRÉE par A842 — ses actions vivent dans la barre (« ⋯ », « ✓ »). */
   .mdb-ed{position:absolute;top:-4px;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;
     border:1px solid var(--line);border-radius:50%;background:var(--work);color:var(--ink-2);opacity:0;cursor:pointer}
   /* A833 : le crayon ne paraît plus qu'au CLAVIER (Tab) — au survol, invisible mais toujours là, il prenait les clics posés
@@ -9664,6 +9656,26 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   .mdt-g{position:relative;display:inline-flex}
   .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
   .mdt-end{margin-left:auto}
+  /* A842 (C1) : au bureau, la partie défilante est transparente ; « ⋯ » et « ✓ Terminé » n'existent que pour un bloc ouvert
+     en mise en forme en direct (rien à terminer dans le Markdown entier), « ⋯ » pas pour le paragraphe vide d'Entrée. */
+  .mdt-scr{display:contents}
+  .md-ed:not(.mdl) .md-toolbar :is(.mdt-blk,.mdt-fin),.md-ed.mdl-v .md-toolbar .mdt-blk{display:none}
+  .md-toolbar .mdt-more{min-width:36px;padding:0;justify-content:center;font-weight:800}
+  .md-toolbar .mdt-ok{gap:4px;padding:0 10px;background:var(--act);border-color:var(--act);color:var(--on-primary);font-weight:700}
+  .md-toolbar.br1 .mdt-ok .kc{display:none}
+  .md-toolbar.br5 .mdt-w4{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar .mdt-ok .kc{color:inherit;background:transparent;border-color:currentColor}
+  /* Au téléphone (largeur utile < 560) : les outils défilent sous le doigt, le bord pâle dit qu'il y en a d'autres ;
+     « ＋ » et « ✓ » restent fixes, en glyphe (leur nom reste lu). */
+  html.zw560 .md-toolbar{flex-wrap:nowrap}
+  html.zw560 .md-toolbar .mdt-scr{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+    mask-image:linear-gradient(90deg,var(--ink) calc(100% - 24px),transparent);-webkit-mask-image:linear-gradient(90deg,var(--ink) calc(100% - 24px),transparent)}
+  html.zw560 .md-toolbar .mdt-scr::-webkit-scrollbar{display:none}
+  html.zw560 .md-toolbar .mdt-scr>*{flex:none}
+  html.zw560 .md-toolbar :is(.mdt-end,.mdt-fin){flex:none;margin-left:0}
+  html.zw560 .md-toolbar .mdt-w2,html.zw560 .md-toolbar .mdt-w4{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw560 .md-toolbar .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  html.zw560 .md-toolbar .mdt-ok{min-width:40px;padding:0;justify-content:center}
   .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
   /* A809 — ⇤ ⇥ : montrés seulement curseur dans une liste, À LA PLACE d'« Encadré » (un encadré n'a pas de sens dans une
      puce : il coupe la liste). Un seul dessin à toutes les largeurs ; « Insérer » reste au bout (marge auto), rien ne saute. */
@@ -9690,10 +9702,6 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Les touches (« keycaps », A829) : au pointeur fin seulement, 11 px, dans le bouton — aucune hauteur ajoutée. */
   .kc{display:none;font:600 11px/1 var(--f-ui);color:var(--ink-2);background:var(--amb-2);border:1px solid var(--line-strong);border-radius:3px;padding:2px 4px;margin-left:6px}
   @media (hover:hover) and (pointer:fine){.kc{display:inline-block}}
-  .mdb-done .kc-s{display:none}
-  .mdb-acts.kc-court .mdb-done .kc-l{display:none}
-  @media (hover:hover) and (pointer:fine){.mdb-acts.kc-court .mdb-done .kc-s{display:inline-block}}
-  .mdb-acts.kc-off .mdb-done .kc{display:none!important}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
@@ -11408,7 +11416,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.164.1';
+const APP_VERSION='5.165.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20852,7 +20860,12 @@ function mdMenus(p){const n=(p.docs||[]).length,C=(c,g)=>`<span class="${c}">${g
       ['code','Code','`texte`',uiIcon('code',18)],['hr','Séparateur','---',uiIcon('hr',18)]]}};}
 function mdToolbarHtml(){
   const dd=(k,inner,cl)=>`<span class="mdt-g${cl?' '+cl:''}"><button type="button" class="mini mdt-dd" data-mdmenu="${k}" data-catmenu aria-haspopup="listbox" aria-expanded="false">${inner}<span class="mdt-cv" aria-hidden="true">${uiIcon('chev',12,{sw:2.6})}</span></button></span>`;
-  return `<div class="md-toolbar" role="toolbar" aria-label="Mise en forme">
+  /* A842 (planche « Modifier sans que ça saute », sections 17-18, C1) — LA BARRE PORTE LE BLOC OUVERT. La rangée d'actions
+     posée SOUS le bloc ouvert (A834) faisait descendre la suite de 66 à 160 px à chaque ouverture (mesuré) : « ⋯ » (le
+     bloc : avant, après, déplacer, sélectionner, dupliquer, supprimer) finit les outils, « ＋ Insérer » et « ✓ Terminé »
+     restent fixes au bout. Au téléphone (`zw560`), les outils DÉFILENT (`.mdt-scr`, le patron de Notion et de Bear) ;
+     « ＋ » et « ✓ » ne bougent pas. Au bureau, `.mdt-scr` est transparent (`display:contents`) : la barre d'avant. */
+  return `<div class="md-toolbar" role="toolbar" aria-label="Mise en forme"><div class="mdt-scr">
     <button type="button" class="mini bld" data-mdtool="b" aria-label="Gras" title="Gras — **texte** · ⌘B">B</button>
     <button type="button" class="mini md-it" data-mdtool="i" aria-label="Italique" title="Italique — *texte* · ⌘I"><i>I</i></button>
     <button type="button" class="mini md-mkb" data-mdtool="mark" aria-label="Surligner" title="Surligner — ==texte== (neutre : la couleur reste aux registres)"><span class="mk-s">S</span></button>
@@ -20862,7 +20875,9 @@ function mdToolbarHtml(){
     ${dd('box','<span class="mdc-crit">'+uiIcon('warn',15)+'</span><span class="mdt-w">Encadré</span>','mdt-box')}
     <span class="mdt-g mdt-brg"><button type="button" class="mini mdt-br" data-mdtool="br" aria-label="Aller à la ligne dans le même paragraphe" title="Aller à la ligne, même paragraphe — Maj+Entrée"><span aria-hidden="true">↵</span><span class="mdt-w3">À la ligne</span><kbd class="kc" aria-hidden="true">⇧⏎</kbd></button></span>
     <span class="mdt-g mdt-lvl"><button type="button" class="mini" data-mdtool="out" aria-label="Remonter d’un niveau" title="Remonter d’un niveau · Maj+Tab">${uiIcon('outdent',18)}</button><button type="button" class="mini" data-mdtool="in" aria-label="Descendre d’un niveau" title="Descendre d’un niveau · Tab">${uiIcon('indent',18)}</button></span>
+    <span class="mdt-g mdt-blk"><button type="button" class="mini mdt-more" data-mdbact="more" aria-haspopup="true" aria-label="Ce bloc : avant, après, déplacer, sélectionner, dupliquer, supprimer" title="Ce bloc">⋯</button></span></div>
     <span class="mdt-g mdt-end"><button type="button" class="mini mdt-dd mdt-ins" data-mdmenu="ins" data-catmenu aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">＋</span><span class="mdt-w2">Insérer</span></button></span>
+    <span class="mdt-g mdt-fin"><button type="button" class="mini mdt-ok" data-mdbact="done" aria-label="Terminé" title="Terminé — Échap ou ⌘ Entrée"><span aria-hidden="true">✓</span><span class="mdt-w4">Terminé</span><kbd class="kc" aria-hidden="true">Échap</kbd></button></span>
   </div>`;}
 // Barre posée au-dessus du clavier (`html.kbd.md-kbd`) : ses menus s'ouvrent AU-DESSUS d'elle, sur sa largeur.
 const mdKbdUp=()=>{const c=document.documentElement.classList;return c.contains('kbd')&&c.contains('md-kbd');};
@@ -21233,10 +21248,6 @@ function mdGrabHtml(p,grab,many){const R=mdBlockRanges(p.body),L=String(p.body||
   const drop=k=>`<button type="button" class="ed-drop" style="--i:${Math.min(k,6)}" data-mdbdrop="${k}">${k===0?'Poser en tête':k===R.length?'Poser en fin':'Poser ici'}</button>`;
   return `<div class="ed-grab" role="status"><span class="eg-l"><b>Déplacement</b> : ${esc(lbl)}</span><span class="eg-h">touchez une destination</span><button type="button" class="eg-x" data-mdbgrabx aria-label="Annuler le déplacement">✕</button></div>`
     +R.map((r,i)=>drop(i)+`<div class="mdb${G.has(i)?' grabbed':''}" data-mdb="${i}"${G.has(i)?' data-mdbgrabx':''}>${mdRender(src(r),{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src(r))}</p>`}</div>`).join('')+drop(R.length);}
-/* A829 — « Terminé » porte sa touche (forme retenue par l'auteur : aucune ligne de rappel sous le bloc, « trop de texte »,
-   aucune hauteur ajoutée). Au pointeur fin seulement (CSS) ; « Échap », ou le glyphe ⎋ si la rangée manquerait de place
-   (`acFit`, A834). */
-const mdDoneBtn=()=>`<button type="button" class="btn sm primary mdb-done" data-mdbact="done" title="Terminé — Échap ou ⌘ Entrée">Terminé<kbd class="kc kc-l" aria-hidden="true">Échap</kbd><kbd class="kc kc-s" aria-hidden="true">⎋</kbd></button>`;
 function mdDocHtml(p,open,grab,many,virt){if(grab>=0&&mdBlockRanges(p.body)[grab])return mdGrabHtml(p,grab,many);
   const R=mdBlockRanges(p.body),L=String(p.body||'').split('\n');
   /* A829 : `virt` (une position de bloc) — le paragraphe VIDE qu'Entrée vient d'ouvrir. Il n'existe pas encore dans le
@@ -21250,20 +21261,9 @@ function mdDocHtml(p,open,grab,many,virt){if(grab>=0&&mdBlockRanges(p.body)[grab
      est retirée (A839). */
   if(!R.length&&virt==null)return `<button type="button" class="mdb-add mdb-first" data-mdbadd="-1"><span class="mdb-fp" aria-hidden="true">${uiIcon('plus',18,{sw:2.4})}</span><span class="mdb-ft"><b>Écrire le contenu</b><small>titres, listes, tableaux, images</small></span></button>`
     +`<button type="button" class="mdb-raw-go" data-mdbraw>Coller du Markdown…</button>`;
-  const vh=virt==null?'':`<div class="mdb on mdb-v" data-mdbv="${virt}"><div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" placeholder="Écrire…" aria-label="Nouveau paragraphe, en Markdown"></textarea></div>
-      <div class="mdb-acts" role="group" aria-label="Ce bloc">${mdDoneBtn()}</div></div>`;
+  const vh=virt==null?'':`<div class="mdb on mdb-v" data-mdbv="${virt}"><div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" placeholder="Écrire…" aria-label="Nouveau paragraphe, en Markdown"></textarea></div></div>`;   // A842 : ni rangée ni bouton sous le bloc — « ✓ Terminé » est dans la barre
   return R.map((r,i)=>{const src=L.slice(r.a,r.e).join('\n');
-    if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea></div>
-      <div class="mdb-acts" role="group" aria-label="Ce bloc">
-${R.length>1?`        <button type="button" class="btn sm ac-grab" data-mdbact="grab" aria-label="Déplacer" title="Déplacer — touchez, puis touchez la destination"><span aria-hidden="true">⠿</span><span class="ac-w" aria-hidden="true">Déplacer</span></button>
-`:''}        <button type="button" class="btn sm ac-x" data-mdbadd="${i-1}">${uiIcon('plus',14,{sw:2.4})}Bloc avant</button>
-        <button type="button" class="btn sm ac-ap" data-mdbadd="${i}" aria-label="Bloc après">${uiIcon('plus',14,{sw:2.4})}<span class="ac-w" aria-hidden="true">Bloc<span class="ac-w2"> après</span></span></button>
-${R.length>1?`        <button type="button" class="btn sm ac-x" data-mdbact="sel">${uiIcon('check',14,{sw:2.6})}Sélectionner</button>
-`:''}
-        <button type="button" class="btn sm ac-x" data-mdbact="dup">${uiIcon('copy',14)}Dupliquer</button>
-        <button type="button" class="btn sm danger ac-x" data-mdbact="del">${uiIcon('trash',14)}Supprimer</button>
-        <button type="button" class="btn sm ac-more" data-mdbact="more" aria-haspopup="true" aria-label="Autres actions du bloc">⋯</button>
-        ${mdDoneBtn()}</div></div>`;
+    if(i===open)return `<div class="mdb on" data-mdb="${i}">${mdBlkToolsHtml(src,p)}<div class="mdb-hlw"><div class="md-hl" aria-hidden="true"></div><textarea class="mdb-ta" rows="1" spellcheck="true" aria-label="Bloc ${i+1} sur ${R.length}, en Markdown">${esc(src)}</textarea></div></div>`;   // A842 : la rangée d'actions est partie dans la barre (« ⋯ », « ✓ Terminé »)
     const h=mdRender(src,{images:p.images,videos:p.videos,attente:p.imgAttente})||`<p class="mdb-raw">${esc(src)}</p>`;   // une image absente reste lisible, en source
     /* A833, A836 (amendent A610) : UNE poignée « ⠿ » dans la marge du bloc survolé (pointeur fin), centrée sur sa 1ʳᵉ ligne —
        jamais sur son texte. Cliquer : le menu du bloc, qui commence par AJOUTER DESSOUS (les types en pastilles) ;
@@ -21335,6 +21335,13 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
   const push=v=>{self=true;ta.value=v;if(blk&&blk.a>0){const c=Math.min(v.length,v.split('\n').slice(0,blk.a).join('\n').length+1);ta.setSelectionRange(c,c);}
     ta.dispatchEvent(new Event('input'));self=false;edTouch();};
   const fit=t=>{t.style.height='auto';t.style.height=Math.ceil(t.scrollHeight/zoomF()+2)+'px';};
+  /* A843 (O2 de la planche, section 17) — LE BLOC OUVERT GARDE L'ALLURE DE SON RENDU, ET LA PREND EN TAPANT : un titre
+     s'écrit à sa taille et sa graisse (`#` 21, `##` 17,5, `###` en capitales), « ## » gardé DANS le cadre (décision de
+     l'auteur : pas de marqueur dans la marge — c'est ce décalage fin que le champ d'iOS ne tient pas, A814). Taper « ## »
+     en tête d'un paragraphe le passe aussitôt à la taille d'un titre ; l'effacer le rend. La classe est posée sur
+     l'enveloppe : le calque du bureau (A814) suit la même taille, le curseur reste sous la lettre. */
+  const taKind=t=>{const w=t&&t.parentNode;if(!w)return;const m=/^(#{1,3})[ \t]/.exec(t.value.split('\n')[0]||''),n=m?m[1].length:0;
+    const c=['','ta-h1','ta-h2','ta-h3'][n];['ta-h1','ta-h2','ta-h3'].forEach(k=>w.classList.toggle(k,k===c));};
   const selPaint=()=>{const bs=[...doc.querySelectorAll('.mdb[data-mdb]')],z=zoomF();
     bs.forEach((b,i)=>{const on=sel.has(+b.dataset.mdb),nx=bs[i+1],pv=bs[i-1];
       const suit=on&&!!nx&&sel.has(+nx.dataset.mdb),pre=on&&!!pv&&sel.has(+pv.dataset.mdb);
@@ -21520,22 +21527,13 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     tmp.innerHTML=mdDocHtml(p,open,grab,grabMany);const nu=tmp.querySelector('.mdb.on');if(!nu)return;const kids=[...tmp.childNodes],k=kids.indexOf(nu);
     [...doc.childNodes].forEach(n=>{if(n!==live)n.remove();});live.before(...kids.slice(0,k));live.after(...kids.slice(k+1));
     live.classList.remove('mdb-v');live.removeAttribute('data-mdbv');live.dataset.mdb=nu.dataset.mdb;
-    {const a0=live.querySelector('.mdb-acts'),a1=nu.querySelector('.mdb-acts');if(a0&&a1)a0.replaceWith(a1);}
     {const t0=live.querySelector('.mdb-ta'),t1=nu.querySelector('.mdb-ta');if(t0&&t1){t0.setAttribute('aria-label',t1.getAttribute('aria-label'));t0.removeAttribute('placeholder');}}
-    vg();selPaint();acFit(live);};
+    vg();selPaint();card.classList.remove('mdl-v');};
   /* A829 : un bloc ouvert qu'on QUITTE vide ne laisse aucune ligne vide de trop dans le texte. */
   const dropEmpty=()=>{const t=doc.querySelector('.mdb-ta');if(!t||vopen||!blk||blk.n<1||t.value.trim())return;
     const L=lines();let pre=L.slice(0,blk.a),post=L.slice(blk.a+blk.n);
     while(post.length&&!post[0].trim()&&(!pre.length||!pre[pre.length-1].trim()))post=post.slice(1);
     if(!pre.some(x=>x.trim()))pre=[];const v=pre.concat(post).join('\n');if(v!==p.body)push(v);blk=null;};
-  /* A829 : la touche de « Terminé » ne prend AUCUN pixel de hauteur — « Échap », sinon ⎋, sinon rien. A834 : la rangée
-     entière tient sur UNE ligne — ensuite « ⋯ » (ac1), puis les glyphes seuls (ac2). Mesuré : une ligne = chaque bouton
-     visible commence avant que le plus haut ne finisse. */
-  const AC_CRANS=[['kc-court'],['kc-off'],['kc-off','ac1'],['kc-off','ac1','ac2']];
-  const acFit=w=>{const a=w&&w.querySelector('.mdb-acts');if(!a)return;const all=['kc-court','kc-off','ac1','ac2'];a.classList.remove(...all);
-    const une=()=>{const k=[...a.children].filter(x=>x.getClientRects().length);if(!k.length)return true;const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));return k.every(x=>x.getBoundingClientRect().top<b0);};
-    if(une())return;for(const c of AC_CRANS){a.classList.remove(...all);a.classList.add(...c);if(une())return;}};
-  {const rz=()=>{if(!document.contains(doc)){removeEventListener('resize',rz);return;}requestAnimationFrame(()=>acFit(doc.querySelector('.mdb.on')));};addEventListener('resize',rz);}
   /* A836 : la poignée ⠿ CENTRÉE SUR LA 1ʳᵉ LIGNE du bloc survolé — mesurée au survol (et au focus clavier) sur le premier
      caractère du rendu : un titre, un encadré, une puce n'ont pas la ligne d'un paragraphe (fixe, elle était 3 à 5 px trop
      haute sur les titres, mesuré). Sans texte (une image seule) : en haut du bloc. */
@@ -21556,19 +21554,20 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      if(e.clientX>=tx||e.clientX<card.getBoundingClientRect().left||e.clientY<d.top||e.clientY>d.bottom)return marque(null);
      marque([...doc.querySelectorAll(':scope>.mdb[data-mdb]:not(.on)')].find(x=>{const r=x.getBoundingClientRect();return e.clientY>=r.top&&e.clientY<=r.bottom;})||null);});
    card.addEventListener('mouseleave',()=>marque(null));}
-  const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);card.dispatchEvent(new Event('mdpaint'));selPaint();medPaint();
+  const paint=(sel_)=>{const sel=sel_;if(open<0)vopen=false;if(!vopen)undoVal=null;const vg=vidGarder(doc);doc.innerHTML=mdDocHtml(p,open,grab,grabMany,vopen?open:null);vg();/* A795 : les vidéos restent posées */card.classList.toggle('mdl-open',open>=0);card.classList.toggle('mdl-v',!!vopen&&open>=0);card.dispatchEvent(new Event('mdpaint'));selPaint();medPaint();
     // Le reste du formulaire est inerte pendant un déplacement (`disabled` natif, comme l'éditeur d'aide).
     card.querySelectorAll('[data-mdlive],[data-mdplan]').forEach(x=>{x.disabled=grab>=0;});
     const t=doc.querySelector('.mdb-ta');setAct(t||null);if(!t){blk=null;return;}
     if(vopen)blk={a:vLine,n:0};
     else{const r=mdBlockRanges(p.body)[open];if(!r){open=-1;return paint();}blk={a:r.a,n:r.e-r.a};}{const c=l2c(blk.a);ta.setSelectionRange(c,c);ta.dispatchEvent(new Event('keyup'));}   // le Plan lit la section du bloc ouvert
-    bindField(t);fit(t);acFit(t.closest('.mdb'));
+    bindField(t);fit(t);taKind(t);
     /* A814 — LE CALQUE DU MARKDOWN ENTIER, DANS LE BLOC OUVERT (même règle qu'A459 : pointeur fin sans écran tactile — le
        champ d'iOS décale son texte de quelques px, un calque décalé serait pire que pas de calque). */
     {const w=t.parentNode;if(w&&w.classList.contains('mdb-hlw')&&matchMedia('(hover:hover) and (pointer:fine)').matches&&!navigator.maxTouchPoints){
       w.classList.add('on');const hs=()=>mdHlSync(t,p.docs,p.images);t.addEventListener('input',hs);t.addEventListener('scroll',()=>{w.firstElementChild.scrollTop=t.scrollTop;});hs();}}
     t.addEventListener('input',()=>{const l=lines(),nl=t.value.split('\n');
       if(undoVal!=null&&t.value!==undoVal)undoVal=null;
+      taKind(t);   // A843 : « ## » tapé, le champ passe aussitôt à la taille du titre
       /* A829 : le paragraphe vide n'entre dans le texte qu'au premier caractère, séparé de ses voisins d'une ligne vide ;
          il devient alors un bloc comme un autre (indices du document recalés autour du champ, sans le recréer). */
       if(vopen){if(!t.value.trim()){fit(t);return;}const pre=l.slice(0,blk.a),post=l.slice(blk.a);
@@ -21622,7 +21621,24 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
      positionné — le menu ancré tombait sous un ancêtre lointain, et le focus de sa première rangée y emmenait la page. */
   /* A801 : un menu d'ACTIONS, sans champ « Filtrer » (`MDT_ACTIONS`, A793) — passé de 8 à 10 choix (A798), il franchissait
      le seuil du filtre, qui prenait le focus : sur tablette, le clavier montait, la page défilait et le déroulant se fermait. */
-  const addMenu=(btn,i)=>openPickMenu(btn.parentNode,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...deskFlot(),...MDT_ACTIONS,
+  /* A842 : les gestes du bloc ouvert — « ✓ Terminé » et « ⋯ » de la barre (la rangée sous le bloc est retirée). Dans la barre,
+     un menu suit la barre : au-dessus d'elle clavier ouvert (`mdMenuHost`, une feuille vivrait sous le clavier). */
+  const hostDe=btn=>btn.closest('.md-toolbar')?(H=>({host:H.host,up:H.up,keep:H.keep,...(H.up?{}:deskFlot())}))(mdMenuHost(btn)):{host:btn.parentNode,...deskFlot()};
+  const blkAct=x=>{const k=x.dataset.mdbact,i=open;
+    if(k==='done')return close();
+    if(k==='grab')return take(i);
+    if(k==='more'){if(i<0)return;const R=mdBlockRanges(p.body);
+      if(x.getAttribute('aria-expanded')==='true'&&_pickClose){_pickClose(false);return;}
+      return openPickMenu(hostDe(x).host,{aria:'Ce bloc',title:'Ce bloc',trigger:x,...hostDe(x),...MDT_ACTIONS,
+        options:[{val:'ap',name:'Bloc après',ic:uiIcon('plus',16,{sw:2.4})},{val:'av',name:'Bloc avant',ic:uiIcon('plus',16,{sw:2.4})},
+          ...(R.length>1?[{val:'grab',name:'Déplacer',ic:'<b class="mdt-hx">⠿</b>'},{val:'sel',name:'Sélectionner',ic:uiIcon('check',16,{sw:2.6})}]:[]),
+          {val:'dup',name:'Dupliquer',ic:uiIcon('copy',16)},{val:'del',name:'Supprimer',ic:uiIcon('trash',16),danger:true}],
+        onPick:v=>{if(v==='ap')return addMenu(x,i);if(v==='av')return addMenu(x,i-1);blkAct({dataset:{mdbact:v}});}});}
+    if(k==='sel'){said();open=-1;paint(false);sel=new Set([i]);selMode=true;anchor=i;return selPaint();}
+    if(k==='dup')return apply(mdBlkDup(p.body,i));
+    if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}};
+  {const tb=card.querySelector('.md-toolbar');if(tb)tb.addEventListener('click',e=>{const x=e.target.closest('[data-mdbact]');if(x&&tb.contains(x)){e.preventDefault();blkAct(x);}});}
+  const addMenu=(btn,i)=>openPickMenu(hostDe(btn).host,{aria:'Ajouter un bloc',title:'Ajouter un bloc',trigger:btn,...hostDe(btn),...MDT_ACTIONS,
     options:MD_BLK_NEW.map(([v,n,sub])=>({val:v,name:n,sub,ic:mdBlkIc(v,16)})),
     onPick:v=>addType(v,i)});
   /* A836 — LE MENU DE LA POIGNÉE ⠿ (pointeur fin) : il commence par AJOUTER DESSOUS — les dix types d'« Ajouter un bloc »
@@ -21665,6 +21681,12 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
         mdGrilleDemande(sb,l.slice(r0.a,r1.e).join('\n'),md=>{const L=lines();push(L.slice(0,r0.a).concat(md.split('\n'),L.slice(r1.e)).join('\n'));sel=new Set();selMode=false;anchor=-1;open=-1;paint(false);});return;}
       if(k==='move'&&sel.size){const M=[...sel].sort((a,b)=>a-b);take(M[0]);grabMany=M.length>1?M:null;paint(false);const d=doc.querySelector('.ed-drop');if(d)d.focus({preventScroll:true});}return;}
     if(skipClick){skipClick=false;e.preventDefault();return;}
+    /* A841 (signalé : « occupe-toi du glisser depuis un mot ») — UN GLISSER PARTI D'UN MOT SÉLECTIONNE DU TEXTE (A634),
+       et la sélection RESTE : le clic qui suit le relâché ouvrait le bloc, le redessinait, et la sélection disparaissait
+       (mesuré : 0 caractère sélectionné). Une sélection non vide dans un bloc fermé = on lit ou l'on copie, pas d'ouverture ;
+       un clic simple (sélection vide) ouvre toujours le bloc. */
+    {const s=getSelection(),bb=e.target.closest&&e.target.closest('.mdb:not(.on)');
+     if(bb&&s&&!s.isCollapsed&&String(s).trim()&&bb.contains(s.anchorNode)){e.preventDefault();return;}}
     {const b=e.target.closest('.mdb:not(.on)');const mod=e.shiftKey||e.metaKey||e.ctrlKey;
       if(b&&(mod||selMode)&&!e.target.closest('button:not(.mdb-ed)')){e.preventDefault();e.stopPropagation();const i=+b.dataset.mdb;
         if(e.shiftKey&&anchor>=0){const [a,z]=[Math.min(anchor,i),Math.max(anchor,i)];for(let k=a;k<=z;k++)sel.add(k);}
@@ -21683,17 +21705,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
     const gb=e.target.closest('[data-mdbgrab]');if(gb){e.stopPropagation();const i=+gb.dataset.mdbgrab;
       if(e.shiftKey||e.metaKey||e.ctrlKey){if(e.shiftKey&&anchor>=0){const [a,z]=[Math.min(anchor,i),Math.max(anchor,i)];for(let k=a;k<=z;k++)sel.add(k);}else{if(sel.has(i))sel.delete(i);else sel.add(i);anchor=i;}return selPaint();}   // A634
       return gripMenu(gb,i);}   // A833 : cliquer ouvre le menu du bloc (« Déplacer » y est) ; glisser déplace (dragstart)
-    const x=e.target.closest('[data-mdbact]');if(x){const k=x.dataset.mdbact,i=open;
-      if(k==='done')return close();
-      if(k==='grab')return take(i);
-      /* A834 : « ⋯ » — ce que la rangée repliée ne montre plus, mêmes gestes. */
-      if(k==='more'){const R=mdBlockRanges(p.body);return openPickMenu(x.parentNode,{aria:'Ce bloc',title:'Ce bloc',trigger:x,...deskFlot(),...MDT_ACTIONS,
-        options:[{val:'av',name:'Bloc avant',ic:uiIcon('plus',16,{sw:2.4})},...(R.length>1?[{val:'sel',name:'Sélectionner',ic:uiIcon('check',16,{sw:2.6})}]:[]),
-          {val:'dup',name:'Dupliquer',ic:uiIcon('copy',16)},{val:'del',name:'Supprimer',ic:uiIcon('trash',16),danger:true}],
-        onPick:v=>{if(v==='av')return addMenu(x,i-1);const b=doc.querySelector('.mdb.on [data-mdbact="'+v+'"]');if(b)b.click();}});}
-      if(k==='sel'){said();open=-1;paint(false);sel=new Set([i]);selMode=true;anchor=i;return selPaint();}
-      if(k==='dup')return apply(mdBlkDup(p.body,i));
-      if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}}
+    const x=e.target.closest('[data-mdbact]');if(x)return blkAct(x);
     const hx=e.target.closest('[data-mdbhx]');if(hx){const t=doc.querySelector('.mdb-ta'),m=t&&/^#{1,6}(?=\s)/.exec(t.value);if(!m)return;   // A798
       const k=+hx.dataset.mdbhx;if(k===m[0].length)return;mdSplice(t,0,m[0].length,'#'.repeat(k));paint();return;}
     /* A799 : retour à la grille depuis le bloc ouvert en texte. « Mettre à jour » referme le bloc (comme depuis « Ajouter un
@@ -23236,10 +23248,11 @@ function renderProtocolEdit(){
      s'arrêtait après avoir tout retiré — le mot revenait, la barre (sans retour à la ligne) débordait, puis se
      recompactait au moindre changement de classe. Et elle comparait à la barre SANS le bouton, qui à 375 px passait
      déjà sur deux lignes. Une seule règle, collante ou fixée, dans un paragraphe ou non : la barre tient sur UNE ligne
-     (chaque enfant visible commence avant que le premier ne finisse, rien ne dépasse à droite) — même mesure que la rangée du bloc ouvert (`acFit`, A834). */
-  const brFit=()=>{if(!tbar||!tbar.getClientRects().length)return;const c=tbar.classList,all=['br1','br2','br3','br4'];
+     (chaque enfant visible commence avant que le premier ne finisse, rien ne dépasse à droite) — la rangée du bloc ouvert (A834) est retirée par A842 ; « ✓ » et le mot « Terminé » se taisent au cran br5. */
+  const brFit=()=>{if(!tbar||!tbar.getClientRects().length)return;const c=tbar.classList,all=['br1','br2','br3','br4','br5'];
     // Les mots « lus, pas montrés » (absolus, 1 px) gonflent `scrollWidth` : on lit les BORDS des enfants visibles.
-    const une=()=>{const k=[...tbar.children].filter(x=>x.getClientRects().length&&getComputedStyle(x).position!=='absolute'),r=tbar.getBoundingClientRect(),pr=parseFloat(getComputedStyle(tbar).paddingRight)||0;
+    const plats=e=>[...e.children].flatMap(x=>getComputedStyle(x).display==='contents'?plats(x):[x]);   // A842 : `.mdt-scr` transparent au bureau
+    const une=()=>{const k=plats(tbar).filter(x=>x.getClientRects().length&&getComputedStyle(x).position!=='absolute'),r=tbar.getBoundingClientRect(),pr=parseFloat(getComputedStyle(tbar).paddingRight)||0;
       if(!k.length)return true;const b0=Math.min(...k.map(x=>x.getBoundingClientRect().bottom));   // une ligne : chacun commence avant que le plus bas ne finisse (un filet de 20 px n'a pas le haut d'un bouton)
       return k.every(x=>x.getBoundingClientRect().top<b0)&&k[k.length-1].getBoundingClientRect().right<=r.right-pr+1;};
     c.remove(...all);if(!une())for(const k of all){c.add(k);if(une())break;}};

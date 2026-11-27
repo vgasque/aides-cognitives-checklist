@@ -9042,7 +9042,7 @@
      la marge haute qui met sa première ligne là où était celle du rendu. Les pastilles du bloc passent SOUS le champ
      (`order`) : au-dessus, elles poussaient le texte ; l'aperçu d'une image reste au-dessus (il EST le rendu du bloc). */
   .mdb.on{margin:12px 0;display:flex;flex-direction:column}
-  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}.mdb.on>.mdb-acts{order:3}
+  .mdb.on>.mdb-imgv{order:0}.mdb.on>.mdb-hlw{order:1}.mdb.on>.mdb-tools{order:2;margin-top:8px}
   .md-doc .mdb-hlw{position:relative;margin:0 calc(-10px - 1.5px)}   /* rembourrage + bordure du champ : son texte tombe au bord du rendu */
   .mdb-hlw .md-hl{display:none}
   /* A814 — le calque d'A459 dans le bloc ouvert, à la police du champ (Manrope, A550) : un titre ou un gras s'y noircit
@@ -9056,21 +9056,13 @@
   .md-doc .mdb-ta{display:block;width:100%;min-height:44px;box-sizing:border-box;resize:none;overflow:hidden;padding:6px 10px;border:1.5px solid var(--act);border-radius:var(--r-1);font-weight:400;
     background:var(--work);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-item);line-height:1.55}   /* A550 : Plex Mono n’est embarquée qu’en 600 — un champ d’écriture se lit en police d’interface */
   @media (pointer:coarse){.md-doc .mdb-ta{font-size:16px}}   /* règle 9 : sous 16 px, Safari iOS zoome au focus */
+  /* A843 : le champ (et son calque) à la taille et la graisse du titre qu'il écrit ; au doigt, jamais sous 16 px. */
+  .md-doc .mdb-hlw.ta-h1 :is(.mdb-ta,.md-hl){font-size:var(--t-step-l);font-weight:800;line-height:1.3}
+  .md-doc .mdb-hlw.ta-h2 :is(.mdb-ta,.md-hl){font-size:var(--t-step);font-weight:800;line-height:1.3}
+  .md-doc .mdb-hlw.ta-h3 :is(.mdb-ta,.md-hl){font-size:var(--t-body);font-weight:800;line-height:1.3;letter-spacing:.06em;text-transform:uppercase}
+  @media (pointer:coarse){.md-doc .mdb-hlw.ta-h3 .mdb-ta{font-size:16px}}
   .md-doc .mdb-ta:focus{outline:none;border-color:var(--act);box-shadow:0 0 0 3px var(--primary-soft)}   /* une seule bordure : l'anneau doux, pas un second trait */
-  .mdb-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .mdb-acts .mdb-done{margin-left:auto}
-  /* A834 (planche « Modifier sans que ça saute ») — LA RANGÉE DU BLOC OUVERT TIENT SUR UNE LIGNE, TOUJOURS. À 390 px elle en
-     faisait trois (≈ 140 px) : ouvrir un bloc poussait la suite d'autant, et le paragraphe vide d'Entrée (« Terminé »
-     seul) gagnait ses six autres boutons au premier caractère (+92 px, mesuré). `acFit` mesure la rangée et la replie
-     par crans tant qu'elle passerait à la ligne : la touche de « Terminé » se raccourcit puis se tait (A829), puis
-     « Bloc avant », « Sélectionner », « Dupliquer », « Supprimer » passent dans « ⋯ » (ac1, « Bloc après » devient
-     « Bloc »), puis « Déplacer » et « Bloc » gardent leur seul glyphe (ac2). Au bureau large, rien ne change. */
-  .mdb-acts .ac-more{display:none;min-width:40px;padding:0;justify-content:center;font-weight:800}
-  .mdb-acts.ac1 .ac-x,.mdb-acts.ac1 .ac-w2{display:none}
-  .mdb-acts.ac1 .ac-more{display:inline-flex}
-  .mdb-acts .ac-grab .ac-w{margin-left:4px}
-  .mdb-acts.ac2 .ac-w{display:none}
-  .mdb-acts.ac2 :is(.ac-grab,.ac-ap){min-width:40px;padding:0;justify-content:center}
+  /* A834 (rangée du bloc ouvert sur une ligne) : RANGÉE RETIRÉE par A842 — ses actions vivent dans la barre (« ⋯ », « ✓ »). */
   .mdb-ed{position:absolute;top:-4px;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin:0;padding:0;
     border:1px solid var(--line);border-radius:50%;background:var(--work);color:var(--ink-2);opacity:0;cursor:pointer}
   /* A833 : le crayon ne paraît plus qu'au CLAVIER (Tab) — au survol, invisible mais toujours là, il prenait les clics posés
@@ -9263,6 +9255,26 @@
   .mdt-g{position:relative;display:inline-flex}
   .mdt-sep{width:1px;height:20px;background:var(--line);margin:0 2px}
   .mdt-end{margin-left:auto}
+  /* A842 (C1) : au bureau, la partie défilante est transparente ; « ⋯ » et « ✓ Terminé » n'existent que pour un bloc ouvert
+     en mise en forme en direct (rien à terminer dans le Markdown entier), « ⋯ » pas pour le paragraphe vide d'Entrée. */
+  .mdt-scr{display:contents}
+  .md-ed:not(.mdl) .md-toolbar :is(.mdt-blk,.mdt-fin),.md-ed.mdl-v .md-toolbar .mdt-blk{display:none}
+  .md-toolbar .mdt-more{min-width:36px;padding:0;justify-content:center;font-weight:800}
+  .md-toolbar .mdt-ok{gap:4px;padding:0 10px;background:var(--act);border-color:var(--act);color:var(--on-primary);font-weight:700}
+  .md-toolbar.br1 .mdt-ok .kc{display:none}
+  .md-toolbar.br5 .mdt-w4{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .md-toolbar .mdt-ok .kc{color:inherit;background:transparent;border-color:currentColor}
+  /* Au téléphone (largeur utile < 560) : les outils défilent sous le doigt, le bord pâle dit qu'il y en a d'autres ;
+     « ＋ » et « ✓ » restent fixes, en glyphe (leur nom reste lu). */
+  html.zw560 .md-toolbar{flex-wrap:nowrap}
+  html.zw560 .md-toolbar .mdt-scr{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+    mask-image:linear-gradient(90deg,var(--ink) calc(100% - 24px),transparent);-webkit-mask-image:linear-gradient(90deg,var(--ink) calc(100% - 24px),transparent)}
+  html.zw560 .md-toolbar .mdt-scr::-webkit-scrollbar{display:none}
+  html.zw560 .md-toolbar .mdt-scr>*{flex:none}
+  html.zw560 .md-toolbar :is(.mdt-end,.mdt-fin){flex:none;margin-left:0}
+  html.zw560 .md-toolbar .mdt-w2,html.zw560 .md-toolbar .mdt-w4{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  html.zw560 .md-toolbar .mdt-ins{min-width:40px;padding:0;justify-content:center}
+  html.zw560 .md-toolbar .mdt-ok{min-width:40px;padding:0;justify-content:center}
   .mdt-end>.popmenu{left:auto;right:0}   /* le dernier menu s'ouvre vers la gauche, dans la carte */
   /* A809 — ⇤ ⇥ : montrés seulement curseur dans une liste, À LA PLACE d'« Encadré » (un encadré n'a pas de sens dans une
      puce : il coupe la liste). Un seul dessin à toutes les largeurs ; « Insérer » reste au bout (marge auto), rien ne saute. */
@@ -9289,10 +9301,6 @@
   /* Les touches (« keycaps », A829) : au pointeur fin seulement, 11 px, dans le bouton — aucune hauteur ajoutée. */
   .kc{display:none;font:600 11px/1 var(--f-ui);color:var(--ink-2);background:var(--amb-2);border:1px solid var(--line-strong);border-radius:3px;padding:2px 4px;margin-left:6px}
   @media (hover:hover) and (pointer:fine){.kc{display:inline-block}}
-  .mdb-done .kc-s{display:none}
-  .mdb-acts.kc-court .mdb-done .kc-l{display:none}
-  @media (hover:hover) and (pointer:fine){.mdb-acts.kc-court .mdb-done .kc-s{display:inline-block}}
-  .mdb-acts.kc-off .mdb-done .kc{display:none!important}
   .md-toolbar .mdt-dd{gap:6px;padding:0 8px}
   .mdt-cv svg{transform:rotate(90deg)}
   .md-toolbar .mdt-ins{border-color:var(--act);color:var(--act);font-weight:700;gap:4px;padding:0 12px}
