@@ -1,5 +1,12 @@
 # Journal des modifications
 
+## [5.161.0] — 2026-11-27
+Le trait des sous-listes, en essai (A831). Aucune mise à jour du serveur.
+- **En lecture, plus de trait vertical à gauche des sous-puces** : le retrait et la puce ronde suffisent à montrer le
+  niveau. Dans l'éditeur, le trait reste : c'est là qu'on construit la structure. C'est un essai, à revoir à l'usage.
+- **Une image collée ou insérée au bout d'un paragraphe ne laisse plus deux lignes vides** dans le texte avant le bloc
+  suivant (rien ne changeait à l'écran ; le Markdown est propre).
+
 ## [5.160.0] — 2026-11-26
 La touche Entrée en mise en forme en direct (A829), et une correction de l'insertion des images (A830). Aucune mise à
 jour du serveur.
@@ -216,10 +223,3 @@ Les vignettes des vidéos se voient enfin sur iPhone, et celles des vidéos déj
 - **Vos vidéos déjà envoyées reçoivent leur vignette d'elles-mêmes** : il suffit d'ouvrir l'app sur un appareil qui peut modifier le protocole et qui a la vidéo. Une vidéo à la fois, quand l'app est au calme, jamais pendant une session. La vignette part ensuite avec le protocole vers vos autres appareils.
 - **Un seul essai par appareil** : une vidéo dont la vignette ne peut pas être prise ici (par exemple une vidéo HEVC d'iPhone que ce navigateur ne lit pas) n'est plus relue à chaque lancement ; elle sera retentée après une mise à jour de l'app, ou prise par un autre appareil.
 - **Lire une vidéo suffit** : si une vidéo sans vignette joue à l'écran, sa vignette est prise sur l'image affichée, sans rien relire.
-
-## [5.148.1] — 2026-11-18
-La grille d'un tableau au téléphone : la colonne collée seulement si c'est un en-tête, et plus de clavier qui s'ouvre
-tout seul (A793). Aucune mise à jour du serveur.
-- **La 1ʳᵉ colonne de la grille n'est plus collée que si c'est une colonne d'en-tête** (A793), comme en lecture, et « Tout défile » (Moi › Affichage) la libère aussi dans la grille. Une 1ʳᵉ colonne de texte large occupait plus de la moitié de l'écran une fois collée ; le nom de la case reste dans la barre au pouce.
-- **Au téléphone, le clavier ne monte plus tout seul** : ouvrir la fenêtre « Tableau » ne place plus le curseur dans la première case, et un choix dans « ⋯ » (en-tête, largeur, ligne ou colonne ajoutée) ne le place pas non plus. On touche la case pour écrire.
-- **Plus de champ « Filtrer » dans les menus de la fenêtre « Tableau »** : il paraissait dans « ⋯ » d'une grille d'images et ouvrait le clavier. Le choix d'une image ou d'une vidéo garde sa recherche, sans clavier d'office.

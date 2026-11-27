@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-211HJCrm7YZN4PPyVszRpxLktGrPX0djb3XSDRdH7iY='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-Nt29fz+yeAsFTNxii386sBWp120iCKnKvJ47IXKeACo='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9192,6 +9192,11 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
      numéro natif n'a pas de centre lisible : le trait se pose à la même abscisse (sous la fin du numéro). Ni sous une case
      cochable, ni dans une case de tableau, ni à l'impression. */
   li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task)::after{content:'';position:absolute;left:calc(-34px + .2em - .5px);top:-4px;bottom:0;width:1px;background:var(--line-strong)}
+  /* A831 — EN LECTURE, PAS DE TRAIT (essai demandé par l'auteur sur la planche « Le trait des sous-listes » : « sans trait
+     sur le lecteur, garde-le sur l'éditeur ») : en lecture, le retrait et la puce ronde disent le niveau ; dans l'éditeur
+     (document en direct, aperçu), le trait reste — c'est là qu'on construit la structure. Seule exception à la feuille
+     unique d'A811 : elle ne change aucune métrique (le trait est un `::after` en absolu, sans place prise). */
+  .ref-main .md-body li:not(.md-task)>:is(.md-ul,.md-ol)>li:not(.md-task)::after{content:none}
   li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{bottom:auto;height:calc(4px + .775em)}
   @supports (top:1lh){li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{height:calc(4px + 1lh / 2)}}
   /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
@@ -11350,7 +11355,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.160.0';
+const APP_VERSION='5.161.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -23058,7 +23063,7 @@ function renderProtocolEdit(){
     if(!r||!r.ids.length||!document.contains(f))return;const refs=r.ids.map(id=>'![](img:'+id+')');
     const it=mdListItemAt(f.value,mdCaretLine(f)),w=it&&mdListMediaIns(f.value,it.ln,refs);
     if(w){const c=w.v.split('\n').slice(0,w.ln+1).join('\n').length;mdSplice(f,0,f.value.length,w.v,c,c);}
-    else{mdMedPose(f);mdInsertAt(f,refs.join('\n')+'\n',true);}});   // A830
+    else{mdMedPose(f);const bout=(f.selectionStart||0)>=f.value.replace(/\s+$/,'').length;mdInsertAt(f,refs.join('\n')+(bout?'':'\n'),true);}});   // A830 ; A831 : au bout du champ, pas de retour final (sinon deux lignes vides)
   const bindField=f=>{
     // Au toucher, les outils ne prennent pas le focus : le clavier reste ouvert, la barre au-dessus.
     if(coarse){f.addEventListener('focus',()=>RT.classList.add('md-kbd'));
@@ -30889,7 +30894,10 @@ function pImgTaker(p,ta){
   return async files=>{const r=await pImgAdmit(p,files);if(!r)return;
     const txt=r.ids.map(id=>'![](img:'+id+')\n').join('');
     mdMedPose(ta);   // A830 : jamais au milieu d'une ligne
-    if(txt)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+txt);
+    // A831 : au bout du champ, pas de retour à la ligne final — le bloc suivant est déjà séparé par une ligne vide (le
+    // Markdown gardait deux lignes vides après une image collée ou insérée en fin de paragraphe).
+    const auBout=(ta.selectionStart||0)>=ta.value.replace(/\s+$/,'').length;
+    if(txt)mdInsertAt(ta,(ta.value&&!/\n$/.test(ta.value.slice(0,ta.selectionStart||0))?'\n':'')+(auBout?txt.replace(/\n$/,''):txt));
     renderProtocolEdit();};}
 function bindAttEditor(entity,rerender){
   paintIxChips();   // l'état d'index de chaque document, posé au rendu puis peint sur place

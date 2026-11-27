@@ -8791,6 +8791,11 @@
      numéro natif n'a pas de centre lisible : le trait se pose à la même abscisse (sous la fin du numéro). Ni sous une case
      cochable, ni dans une case de tableau, ni à l'impression. */
   li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task)::after{content:'';position:absolute;left:calc(-34px + .2em - .5px);top:-4px;bottom:0;width:1px;background:var(--line-strong)}
+  /* A831 — EN LECTURE, PAS DE TRAIT (essai demandé par l'auteur sur la planche « Le trait des sous-listes » : « sans trait
+     sur le lecteur, garde-le sur l'éditeur ») : en lecture, le retrait et la puce ronde disent le niveau ; dans l'éditeur
+     (document en direct, aperçu), le trait reste — c'est là qu'on construit la structure. Seule exception à la feuille
+     unique d'A811 : elle ne change aucune métrique (le trait est un `::after` en absolu, sans place prise). */
+  .ref-main .md-body li:not(.md-task)>:is(.md-ul,.md-ol)>li:not(.md-task)::after{content:none}
   li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{bottom:auto;height:calc(4px + .775em)}
   @supports (top:1lh){li:not(.md-task)>:is(.md-ul,.md-ol):not(.md-tbl *)>li:not(.md-task):last-child::after{height:calc(4px + 1lh / 2)}}
   /* Listes cochables (v4.5.4) : case à GAUCHE (liste de prose, position GitHub — pas la checklist
