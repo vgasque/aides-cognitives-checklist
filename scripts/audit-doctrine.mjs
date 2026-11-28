@@ -9072,9 +9072,14 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  t('A772-A776 · 1C · écrit : vignette retirée de la 1ʳᵉ case, ajoutée à la ligne 2',/\| Fémoral +\| Normal<br>!\[\]\(img:i_b\) \|\n\|[-| ]+\|\n\| !\[\]\(img:i_b\) +\|/.test(g2),g2.slice(g2.indexOf('## Écho'),g2.indexOf('## Écho')+200));
  // 1A : liste
  await page.evaluate(async()=>{document.querySelector('#mdDoc ol').closest('.mdb').click();await __acCalme(300);const t=document.querySelector('#mdDoc .mdb-ta');const v=t.value;const i=v.indexOf('fémorale')+3;t.focus();t.setSelectionRange(i,i);t.dispatchEvent(new Event('keyup'));await __acCalme(100);});
- const l=await page.evaluate(()=>(document.querySelector('#mdDoc .mdb-lctx')||{}).textContent);
- t('A772-A776 · 1A · le bloc liste ouvert dit l’élément du curseur',l==='Dans l’élément 2 :',l);
- await page.click('#mdDoc [data-mdblmed="img"]');await calme(page,250);
+ // A844 : les pastilles « Dans l’élément n : Image · Vidéo » sont retirées — « ＋ Insérer › Image » le demande, et offre les images du protocole.
+ const l0=await page.evaluate(()=>document.querySelectorAll('#mdDoc .mdb.on .mdb-tools').length);
+ await page.click('.md-toolbar [data-mdmenu="ins"]');await calme(page,250);await page.click('.popmenu [data-pickopt="img"]');await calme(page,250);
+ const l=await page.evaluate(()=>(document.querySelector('.popmenu [data-pickopt="in"] .mm-lb')||{}).textContent);
+ t('A772-A776 · 1A · A844 · rien sous la liste ouverte ; « Insérer › Image » dit l’élément du curseur',l0===0&&l==='Dans l’élément 2',l0+' '+l);
+ await page.click('.popmenu [data-pickopt="in"]');await calme(page,250);
+ const lo=await page.evaluate(()=>[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(','));
+ t('A772-A776 · 1A · A844 · puis : depuis l’appareil, ou une image du protocole',lo==='+,i_a,i_b',lo);
  await page.click('.popmenu [data-pickopt="i_a"]');await calme(page,250);
  const lv=await page.evaluate(()=>document.querySelector('#mdDoc .mdb-ta').value);
  t('A772-A776 · 1A · l’image s’écrit sous l’élément 2, au retrait de son texte',lv==='1. Sonde linéaire\n2. Veine fémorale\n   ![](img:i_a)\n3. Veine poplitée',JSON.stringify(lv));
@@ -9171,9 +9176,8 @@ const prep=async page=>{await page.goto(`http://localhost:${port}/index.html`);a
  await page.evaluate(()=>{const v=document.querySelector('.popmenu-veil');if(v)v.click();});await calme(page,200);
  await page.evaluate(async()=>{document.querySelector('#mdToolModal .ai-top [data-mdtw="x"]').click();await __acCalme(300);});
  await page.evaluate(async()=>{document.querySelector('#mdDoc ol').closest('.mdb').click();await __acCalme(300);});
- const ch=await page.evaluate(()=>[...document.querySelectorAll('#mdDoc [data-mdblmed]')].map(b=>Math.round(b.getBoundingClientRect().height)).join(','));
- t('A772-A776 · Téléphone · pastilles de liste à 36 px',ch==='36,36',ch);
- await page.tap('#mdDoc [data-mdblmed="img"]');await calme(page,300);
+ const ch=await page.evaluate(()=>{const b=document.querySelector('#mdDoc .mdb.on'),f=b&&(b.querySelector('.mdb-hlw')||b.querySelector('.mdb-ta'));return b?b.querySelectorAll('.mdb-tools').length+'/'+Math.round(b.getBoundingClientRect().bottom-f.getBoundingClientRect().bottom):'';});
+ t('A772-A776 · A844 · Téléphone · liste ouverte : aucune pastille, 0 px sous le champ',ch==='0/0',ch);
  await ctx.close();}
 });
 
@@ -9345,8 +9349,12 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
   await calme(page, 500);
   const r=await page.evaluate(async()=>{const w=ms=>new Promise(x=>setTimeout(x,ms)),o={};const d=document.getElementById('mdDoc');if(!d)return {doc:false};o.doc=true;
     d.querySelector('.md-call').closest('.mdb').click();await __acCalme(150);
-    const ch=[...d.querySelectorAll('[data-mdbreg]')];o.reg={n:ch.length,mots:ch.map(x=>x.textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('svg')||/[△⚠ℹ✓]/.test(x.textContent)),on:(d.querySelector('[data-mdbreg].on')||{dataset:{}}).dataset.mdbreg};
-    if(ch.length){d.querySelector('[data-mdbreg="crit"]').click();await __acCalme(150);}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
+    // A844 : plus de pastilles sous l'encadré ouvert ; « Encadré ▾ » de la barre coche le registre et le REMPLACE.
+    {const ta=d.querySelector('.mdb-ta');ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}
+    o.pastilles=d.querySelectorAll('.mdb.on .mdb-tools').length;
+    document.querySelector('.md-toolbar [data-mdmenu="box"]').click();await __acCalme(200);
+    const ch=[...document.querySelectorAll('.popmenu [data-pickopt]')];o.reg={n:ch.length,mots:ch.map(x=>(x.querySelector('.mm-lb')||x).textContent.replace(/[^A-Za-zÀ-ÿ]/g,'')).join('|'),glyphes:ch.every(x=>!!x.querySelector('.mm-ic svg')||/[△⚠ℹ✓]/.test((x.querySelector('.mm-ic')||{}).textContent||'')),on:(document.querySelector('.popmenu [aria-selected="true"]')||{dataset:{}}).dataset.pickopt};
+    {const c=document.querySelector('.popmenu [data-pickopt="c-caution"]');if(c){c.click();await __acCalme(150);}}o.alerte=state.pdraft.body.includes('> [!CAUTION]\n> Voie IM')&&!state.pdraft.body.includes('WARNING');
     const dn=document.querySelector('.md-ed [data-mdbact="done"]');if(dn)dn.click();await __acCalme(100);
     const im=[...d.querySelectorAll('.mdb')].find(b=>b.querySelector('img'));if(im){im.click();await __acCalme(150);}
     o.image={vue:!!d.querySelector('.mdb-imgv img'),tailles:d.querySelectorAll('.mdb-imgv .mds-o').length,dit:/Largeur : 100 %/.test((d.querySelector('.mdb-imgv .hint')||{}).textContent||'')};
@@ -9360,8 +9368,8 @@ await sec('Éditeur · A548-A549 réglages du bloc ouvert, prendre / poser un bl
     {const u=document.getElementById('hdrUndo');for(let k=0;k<30&&u.hidden;k++)await __acCalme(100);o.undoDep=!u.hidden;if(o.undoDep){u.click();await __acCalme(300);}o.apresUndo=state.pdraft.body.split('\n')[0];}
     o.n=n;
     return o;});
-  t('A548 · encadré ouvert : quatre pastilles de registre, glyphe et mot, la courante allumée ; « Alerte » réécrit le marqueur',
-    r.doc&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='vig'&&r.alerte,JSON.stringify(r.reg||r)+' alerte='+r.alerte);
+  t('A548 · A844 · encadré ouvert : rien sous le champ ; « Encadré ▾ » : quatre registres, glyphe et mot, le courant coché ; « Alerte » REMPLACE le marqueur',
+    r.doc&&r.pastilles===0&&r.reg.n===4&&r.reg.mots==='Alerte|Attention|Information|Confirmation'&&r.reg.glyphes&&r.reg.on==='c-warning'&&r.alerte,JSON.stringify(r.reg||r)+' pastilles='+r.pastilles+' alerte='+r.alerte);
   t('A548 · image ouverte : l\'image au-dessus du champ, à sa largeur — A789 : sans crans (un seul réglage, sur le document), une ligne dit la largeur',
     r.doc&&r.image.vue&&r.image.tailles===0&&r.image.dit&&r.taille.ouvert,JSON.stringify([r.image,r.taille]));
   t('A549 · « Prendre / Poser » (geste de l\'éditeur d\'aide) : ⠿ prend le dernier bloc, bandeau qui le nomme, une cible par place, le reste inerte ; « Poser en tête » le pose',
@@ -12945,14 +12953,17 @@ await sec('Éditeur · A798-A799 trois niveaux de titre ; « Modifier le Markdow
       const o={opts:[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',')};
       document.querySelector('.popmenu [data-pickopt="h3"]').click();await __acCalme(300);
       const ta=d.querySelector('.mdb-ta');o.val=ta&&ta.value;o.sel=ta&&ta.value.slice(ta.selectionStart,ta.selectionEnd);
-      o.chips=[...d.querySelectorAll('.mdb.on [data-mdbhx]')].map(x=>x.dataset.mdbhx+(x.getAttribute('aria-checked')==='true'?'*':'')).join(',');
-      d.querySelector('.mdb.on [data-mdbhx="1"]').click();await __acCalme(300);
+      // A844 : plus de pastilles de niveau — « Titre ▾ » de la barre coche le niveau en cours et le change sur place.
+      const niv=async()=>{document.querySelector('.md-toolbar [data-mdmenu="h"]').click();await __acCalme(250);
+        return [...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt+(x.getAttribute('aria-selected')==='true'?'*':'')).join(',');};
+      o.pastilles=d.querySelectorAll('.mdb.on .mdb-tools').length;
+      o.chips=await niv();document.querySelector('.popmenu [data-pickopt="h1"]').click();await __acCalme(300);
       const t2=d.querySelector('.mdb-ta');o.niv=t2&&t2.value;o.body=state.pdraft.body;
-      o.chips2=[...d.querySelectorAll('.mdb.on [data-mdbhx]')].map(x=>x.dataset.mdbhx+(x.getAttribute('aria-checked')==='true'?'*':'')).join(',');
+      o.chips2=await niv();{const v=document.querySelector('.popmenu-veil');if(v)v.click();else if(typeof _pickClose==='function'&&_pickClose)_pickClose(false);await __acCalme(200);}
       document.querySelector('.md-ed [data-mdbact="done"]').click();await __acCalme(200);return o;});
     t('A798 · '+L+' · « Ajouter un bloc » : Grand titre, Titre de section, Sous-titre ; « Sous-titre » pose « ### Sous-titre », mot sélectionné',
       /^p,h1,h,h3,c,/.test(a.opts)&&a.val==='### Sous-titre'&&a.sel==='Sous-titre',JSON.stringify(a));
-    t('A798 · '+L+' · un titre ouvert change de niveau sur place (H3 → H1), écrit dans le document',a.chips==='1,2,3*'&&a.niv==='# Sous-titre'&&/\n# Sous-titre$/.test(a.body)&&a.chips2==='1*,2,3',JSON.stringify(a));
+    t('A798 · A844 · '+L+' · un titre ouvert change de niveau sur place par « Titre ▾ » (H3 coché → H1 coché), écrit dans le document, rien sous le champ',a.pastilles===0&&a.chips==='h1,h2,h3*'&&a.niv==='# Sous-titre'&&/\n# Sous-titre$/.test(a.body)&&a.chips2==='h1*,h2,h3',JSON.stringify(a));
     // A799 : saisie dans la grille, puis « Modifier le Markdown » : la saisie est écrite, le bloc ouvert en texte porte le retour
     const b=await page.evaluate(async tactile=>{const d=document.getElementById('mdDoc'),m=document.getElementById('mdToolModal');
       d.querySelector('table').closest('.mdb').click();await __acCalme(300);
@@ -13773,6 +13784,39 @@ for(const W of [1280,390]){const pg=await proto819(W,W<500?844:900,corps);
       const plus=q('[data-mdmenu="ins"]'),ok=q('[data-mdbact="done"]');return {h:Math.round(r.height),defile:sc.scrollWidth>sc.clientWidth,fixes:plus.right<=innerWidth&&ok.right<=innerWidth&&plus.left>sc.getBoundingClientRect().right-2&&ok.left>plus.left};});
     t('A842 · 390 px : la barre tient sur une ligne, ses outils défilent, « ＋ » et « ✓ » restent fixes au bout',b.h<=44&&b.defile&&b.fixes,JSON.stringify(b));}
   await pg.close();}
+});
+/* ══ A844 — LES PASTILLES SOUS LE BLOC OUVERT SONT RETIRÉES ; « ENCADRÉ ▾ » REMPLACE LE REGISTRE ═══════════════════════
+   Titre, liste, encadré ouverts : rien sous le champ (40 px avant). La barre fait le même travail et coche l'état en cours.
+   « Encadré ▾ » sur un encadré : le marqueur est REMPLACÉ, en mise en forme en direct comme en mode Texte (avant : un second
+   `> [!NOTE]` s'empilait). « Sortir l'image de la liste » (A642) passe dans « ⋯ ». */
+await sec('Éditeur · A844 rien sous le bloc ouvert ; « Encadré ▾ » remplace le registre ; « Sortir » dans « ⋯ »', async () => {
+  const corps="## Titre\n\nTexte.\n\n- Un\n  ![](img:i1)\n- Deux\n\n> [!WARNING]\n> Dose\n\nFin.";
+  const img='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  await page.evaluate(async([c,img])=>{try{localStorage.removeItem('ac-mdlive');}catch(e){}const pr=migrateProtocol({title:'Témoin A844',body:c,images:[{id:'i1',data:img,w:1,h:1}]});protocols.push(pr);await openProtocolEdit(pr.id);},[corps,img]);
+  await calme(page,600);
+  const r=await page.evaluate(async()=>{const d=document.getElementById('mdDoc'),o={sous:[]};
+    for(const s of ['.md-h2','li','.md-call']){const e=d.querySelector(s);e.closest('.mdb').click();await __acCalme(250);
+      const b=d.querySelector('.mdb.on'),f=b.querySelector('.mdb-hlw')||b.querySelector('.mdb-ta');o.sous.push(b.querySelectorAll('.mdb-tools').length+'/'+Math.round(b.getBoundingClientRect().bottom-f.getBoundingClientRect().bottom));
+      if(s==='li'){document.querySelector('.md-toolbar [data-mdbact="more"]').click();await __acCalme(200);
+        const u=document.querySelector('.popmenu [data-pickopt="unlist"]');o.unlist=u&&u.textContent.trim();if(u){u.click();await __acCalme(300);}
+        o.apres=state.pdraft.body.includes('- Un\n- Deux\n\n![](img:i1)');}
+      const dn=document.querySelector('.md-ed [data-mdbact="done"]');if(dn&&dn.offsetParent){dn.click();await __acCalme(200);}}
+    return o;});
+  t('A844 · titre, liste, encadré ouverts : aucune pastille, 0 px sous le champ',r.sous.join(' ')==='0/0 0/0 0/0',r.sous.join(' '));
+  t('A844 · A642 · « ⋯ » d’une liste qui porte une image : « Sortir l’image de la liste », qui la sort',r.unlist==='Sortir l’image de la liste'&&r.apres,JSON.stringify(r));
+  // Mode Texte : le curseur sur la 2ᵉ ligne de l'encadré, « Encadré ▾ › Information » remplace le marqueur.
+  const m=await page.evaluate(async()=>{const sw=document.querySelector('.md-ed [data-mdlive]')||document.querySelector('.md-ed .md-mode input');
+    localStorage.setItem('ac-mdlive','0');await openProtocolEdit(state.pdraft.id);await __acCalme(400);
+    const f=document.getElementById('p-body');if(!f)return {texte:false};const i=f.value.indexOf('> Dose')+4;f.focus();f.setSelectionRange(i,i);await __acCalme(100);
+    document.querySelector('.md-toolbar [data-mdmenu="box"]').click();await __acCalme(250);
+    const on=(document.querySelector('.popmenu [aria-selected="true"]')||{dataset:{}}).dataset.pickopt;
+    document.querySelector('.popmenu [data-pickopt="c-note"]').click();await __acCalme(250);
+    const v=f.value;try{localStorage.removeItem('ac-mdlive');}catch(e){}return {texte:true,on,v:v.slice(v.indexOf('> ['),v.indexOf('Fin.')).trim()};});
+  t('A844 · mode Texte : « Encadré ▾ » coche « Attention », puis « Information » remplace le marqueur (aucun second marqueur)',m.texte&&m.on==='c-warning'&&m.v==='> [!NOTE]\n> Dose',JSON.stringify(m));
+  await page.close();
 });
 
 const bilanSec=sec.bilan();

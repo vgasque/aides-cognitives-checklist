@@ -1,5 +1,17 @@
 # Journal des modifications
 
+## [5.166.0] — 2026-11-27
+Ouvrir un titre, une liste ou un encadré ne fait plus descendre la suite (A844). Aucune mise à jour du serveur.
+- **Plus de boutons sous un titre, une liste ou un encadré ouverts** (niveau du titre ; « Dans l'élément : Image ·
+  Vidéo » ; Alerte · Attention · Information · Confirmation). Ils ajoutaient 40 px sous le bloc ; la barre de mise en forme
+  fait le même travail.
+- **« Titre » et « Encadré » cochent l'état en cours** : le niveau du titre, le registre de l'encadré. Un menu de choix
+  s'ouvre sur l'option cochée.
+- **Corrigé : changer le registre d'un encadré par « Encadré » le remplace.** Avant, un second marqueur s'ajoutait sous le
+  premier (« > [!WARNING] » puis « > [!NOTE] »), en mise en forme en direct comme en mode Texte.
+- **« ＋ Insérer › Image › Dans l'élément » propose aussi les images déjà dans le protocole**, comme le bouton retiré.
+- **« Sortir les images de la liste »** est dans « ⋯ » du bloc ouvert.
+
 ## [5.165.0] — 2026-11-27
 Écrire un protocole sans que le bloc saute (A841-A843). Aucune mise à jour du serveur.
 - **Plus de rangée de boutons sous le bloc ouvert** : « ⋯ » (bloc après ou avant, déplacer, sélectionner, dupliquer,
@@ -233,11 +245,3 @@ jour du serveur.
 Dans les menus, les définitions ne s'affichent plus en bandeau bleu (A804). Aucune mise à jour du serveur.
 - **Une définition devient une note grise** (A804). Dans « Choisir la catégorie » (« Une seule par aide, avec sa couleur… ») et « Ajouter à une collection » (« Vos collections sont à vous seul… »), la phrase reste à sa place, sous le titre, mais sans cadre ni fond bleu. Elle ne se confond plus avec le choix en cours, l'anneau de sélection ou le bouton « Terminé », qui sont bleus eux aussi. Au téléphone, les catégories montent d'une trentaine de pixels.
 - **Ce qui dit la conséquence d'un geste reste en bleu** : quand on range des éléments de deux bibliothèques à la fois, l'avertissement « 2 bibliothèques différentes… » garde son bandeau. C'est lui qu'il faut lire avant de choisir.
-
-## [5.151.0] — 2026-11-20
-Les menus déroulants du bureau et de la tablette ne répètent plus le bouton qui les ouvre, et leur titre ne se confond
-plus avec les choix (A803). Aucune mise à jour du serveur.
-- **Plus de titre qui redit le bouton** (A803). Un menu ouvert par un bouton qui dit déjà ce qu'on fait (« Ajouter un bloc », les filtres « Type », « Bibliothèque », « Catégorie » de « Tout », « Mettre en grille »…) s'ouvre directement sur ses choix. Ouvert depuis une icône (＋, ···, ⋮) ou un bouton qui dit autre chose (« Autre… », « Bloc après », « A → Z »), il garde son titre.
-- **Le titre qui reste est posé** : plus petit (15 au lieu de 17,5), avec de l'air au-dessus et un filet qui le sépare des choix. Il ne se lit plus comme une rangée de plus. Tous les menus déroulants ont désormais la même tête que le menu des catégories.
-- **Rien ne se perd** : un titre ne disparaît que si les mêmes mots sont sur le bouton qu'on vient de toucher. La ligne de contexte, les notices et le champ de recherche restent, et les lecteurs d'écran annoncent toujours le nom du menu.
-- **Au téléphone, rien ne change** : les feuilles du bas gardent leur titre.

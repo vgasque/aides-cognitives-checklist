@@ -998,6 +998,8 @@ bureau ; vérifié capable d'échouer : 7 rouges sur l'avant), « Éditeur · A5
 
 ## A548 — Le bloc ouvert se règle sur place ; glisser un bloc (v5.77.0)
 
+> **Amendé par A844** (lot v5.166) : les pastilles de registre de l'encadré ouvert sont retirées : « Encadré ▾ » de la barre coche le registre et le remplace.
+
 *Suite d'A547 (« pas encore fait ») et de la planche B (B2, B4). Demande de l'auteur : « poursuis ».*
 
 - **Encadré ouvert** : ses quatre registres en pastilles au-dessus du champ (`[data-mdbreg]`, `role="radio"`) —
