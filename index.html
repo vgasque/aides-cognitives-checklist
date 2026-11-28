@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-UV4fyKOkk67+y0PZ0M0I3K2hrEf8hYUPIcDOqhP9AM0='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aPVsjWOR7gCTM5iKkNdzhbUsQt9pCLd7wdgYynAWW5U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -9631,14 +9631,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
     background:var(--work);font:inherit;font-size:var(--t-body);font-weight:700;color:var(--ink);cursor:pointer}
   .mdb-chip:focus-visible{outline:2px solid var(--act);outline-offset:2px}
   .mdb-chip svg{width:14px;height:14px}
-  .mdb-chip.on{border-color:var(--act);background:var(--primary-soft);color:var(--act)}
-  .mdb-chip.crit.on{border-color:var(--crit-line);background:var(--crit-soft);color:var(--crit)}
-  .mdb-chip.vig.on{border-color:var(--warn-line);background:var(--warn-soft);color:var(--warn)}
-  .mdb-chip.ok.on{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
   .mdb-imgv{margin:0 0 8px}
-  /* A772 : le bloc liste ouvert — « Dans l'élément n : » puis Image · Vidéo (le libellé suit le curseur). */
-  .mdb-lctx{align-self:center;font-size:var(--t-meta);font-weight:700;color:var(--ink-2)}
-  .mdb-chip:disabled{opacity:.45;cursor:default}
   @media (pointer:coarse){.mdb-tools .mdb-chip{min-height:36px}}
   /* A772-A773 : la vignette d'une image dans un choix de média (menu ou feuille). */
   .mm-thumb{display:block;width:40px;height:30px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
@@ -11416,7 +11409,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.165.0';
+const APP_VERSION='5.166.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -20677,7 +20670,12 @@ function mdSplice(inp,from,to,seg,sa,sb){
    encadré ; l'app accepte aussi la forme d'une seule ligne, mais on ne la PRODUIT pas.)
    Un encadré posé sur un encadré remplace son registre — jamais d'empilement. */
 function mdCalloutLines(inp,word){const [a,b,v]=selBounds(inp);
-  const ls=v.lastIndexOf('\n',a-1)+1;let end=v.indexOf('\n',b);if(end<0)end=v.length;
+  let ls=v.lastIndexOf('\n',a-1)+1,end=v.indexOf('\n',b);if(end<0)end=v.length;
+  /* A844 : le curseur dans un encadré (ou une citation) — tout le bloc `>` change, marqueur compris : choisir un registre
+     REMPLACE le marqueur (avant, seule la ligne du curseur était reprise, un second `> [!NOTE]` s'empilait sous le premier). */
+  const qt=l=>/^[ \t]*>/.test(l);
+  if(qt(v.slice(ls,end))){while(ls>0){const q=v.lastIndexOf('\n',ls-2)+1;if(q>=ls||!qt(v.slice(q,ls-1)))break;ls=q;}
+    while(end<v.length){let e2=v.indexOf('\n',end+1);if(e2<0)e2=v.length;if(!qt(v.slice(end+1,e2)))break;end=e2;}}
   const body=v.slice(ls,end).split('\n')
     .map(l=>l.replace(/^>\s?/,'').replace(/^\[!\s*[A-Za-zÀ-ÿ]{2,12}\s*\]\s*/,''))
     .filter((l,i,arr)=>arr.length===1||l.trim()!=='')
@@ -20886,8 +20884,15 @@ const mdMenuHost=btn=>mdKbdUp()?{host:btn.closest('.md-toolbar'),up:true,keep:tr
 function mdMenuOpen(btn,p,tool){if(btn.getAttribute('aria-expanded')==='true'&&_pickClose){_pickClose(false);return;}
   const M=mdMenus(p)[btn.dataset.mdmenu],H=mdMenuHost(btn);
   openPickMenu(H.host,{aria:M.aria,trigger:btn,up:H.up,keep:H.keep,...MDT_ACTIONS,   // A801 : menus d'actions, jamais de filtre
+    value:mdMenuVal(btn.dataset.mdmenu,tool.field&&tool.field()),   // A844 : le niveau ou le registre en cours, coché
     options:M.o.map(([val,name,sub,ic,chev])=>({val,name,sub,ic,chev})),
     onPick:v=>v==='att'?mdDocMenu(btn,p,tool.field?tool.field():document.getElementById('p-body'),false):tool(v)});}
+/* A844 : « Titre ▾ » et « Encadré ▾ » cochent l'état de la ligne du curseur — le niveau du titre, le registre de l'encadré
+   qui la porte (son marqueur est sur la 1ʳᵉ ligne `>`). Les pastilles sous le bloc ouvert, qui le montraient, sont retirées. */
+function mdMenuVal(k,ta){if(!ta||typeof ta.value!=='string')return null;const L=ta.value.split('\n');let n=mdCaretLine(ta);const q=l=>/^[ \t]*>/.test(l||'');
+  if(k==='h'){const m=/^(#{1,3})[ \t]/.exec(L[n]||'');return m?'h'+m[1].length:null;}
+  if(k==='box'&&q(L[n])){while(n>0&&q(L[n-1]))n--;const m=/^[ \t]*>[ \t]?\[!\s*([A-Za-z]+)\s*\]/.exec(L[n]);return m?'c-'+m[1].toLowerCase():null;}
+  return null;}
 // Un geste de la barre ou du clavier (même table pour les deux).
 function mdTool(k,ta,p,takeImg){
   if(k==='out'||k==='in')mdListIndent(ta,k==='out');   // A809 : ⇤ ⇥, montrés seulement dans une liste
@@ -20924,9 +20929,13 @@ function mdLmedAsk(k,ta,p,takeImg){const it=mdListItemAt(ta.value,mdCaretLine(ta
     options:[{val:'in',name:'Dans l’élément '+it.n,sub:it.text.length>50?it.text.slice(0,49)+'…':it.text,ic:uiIcon('ul',18)},{val:'out',name:'Après la liste',sub:'pleine colonne',ic:uiIcon(vid?'play':'camera',18)}],
     onPick:v=>{if(v==='out'){const R=mdBlockRanges(ta.value).find(r=>r.a<=it.ln&&it.ln<r.e),L=ta.value.split('\n'),e=R?R.e:it.end+1,c=L.slice(0,e).join('\n').length;
         ta.focus();ta.setSelectionRange(c,c);if(vid)vidPick(ta,p);else pickFile('image',takeImg,true);return;}
+      const ins=refs=>{if(!refs.length||!document.contains(ta))return;const r=mdListMediaIns(ta.value,it.ln,refs);if(!r)return;
+        const c=r.v.split('\n').slice(0,r.ln+1).join('\n').length;mdSplice(ta,0,ta.value.length,r.v,c,c);};
+      /* A844 : la pastille « Image » du bloc liste ouvert (retirée) offrait aussi les médias déjà dans le protocole — ce menu
+         les offre à son tour (`mdMedMenu`) ; sans média, droit au choix du fichier. */
+      if(((vid?p.videos:p.images)||[]).length)return mdMedMenu(trig,p,k,(vid?'Vidéo':'Image')+' dans l’élément '+it.n,it.text.length>60?it.text.slice(0,59)+'…':it.text,ins,true);
       pickFile(vid?'video':'image',async files=>{let ids=[];if(vid)ids=await vidAdmit(p,files);else{const r=await pImgAdmit(p,files);ids=r?r.ids:[];if(r&&_pEdImgs)_pEdImgs();}
-        if(!ids.length||!document.contains(ta))return;const r=mdListMediaIns(ta.value,it.ln,ids.map(id=>'![]('+(vid?'vid':'img')+':'+id+')'));if(!r)return;
-        const c=r.v.split('\n').slice(0,r.ln+1).join('\n').length;mdSplice(ta,0,ta.value.length,r.v,c,c);},true);}});
+        ins(ids.map(id=>'![]('+(vid?'vid':'img')+':'+id+')'));},true);}});
   return true;}
 /* A776 — LE DÉPÔT QUI VISE (planche « Éditeur de protocole — médias, tableaux, dépôt », forme 3A retenue par l'auteur).
    Au-dessus du contenu rédigé, le voile plein écran ne vient pas : une ligne bleue suit le pointeur et une étiquette dit
@@ -21068,8 +21077,6 @@ function mdBlkMoveTo(body,from,to){const n=mdBlockRanges(body).length;if(from<0|
   let v=String(body),i=from;const t=to>from?to-1:to;while(i!==t){const r=mdBlkMove(v,i,t>i?1:-1);if(!r)return null;v=r.v;i=r.i;}return {v,i};}
 /* A548 — LE BLOC OUVERT SE RÈGLE SUR PLACE. Un encadré : son registre en pastilles (glyphe + mot, jamais la couleur
    seule, règle 8) ; une image : sa taille en pastilles, l'image elle-même au-dessus du champ, « Remplacer… ». */
-const MD_REG_WORD={crit:'CAUTION',vig:'WARNING',info:'NOTE',ok:'TIP'};
-const mdSrcCall=src=>{const l=String(src||'').split('\n')[0];if(!/^>/.test(l))return null;const c=mdCallout(l.replace(/^>\s?/,''));return c.kind||'';};
 const mdSrcImg=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(img:([A-Za-z0-9_-]{1,64})\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?$/);return m?m[1]:null;};
 const mdSrcVid=src=>{const m=String(src||'').trim().match(/^!\[[^\]]{0,300}\]\(vid:([A-Za-z0-9_-]{1,64})\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?$/);return m?m[1]:null;};   // A775
 /* A584 — LA TAILLE D'UNE IMAGE, SANS CHIFFRES : le cadre (la colonne d'un grand écran, l'image à sa part, une poignée
@@ -21108,9 +21115,9 @@ function mdBlkToolsHtml(src,p){
      il ne savait plus devenir un tableau ou une image sans retaper la syntaxe). */
   if(!String(src||'').trim())return `<div class="mdb-tools" role="group" aria-label="Faire de ce bloc">`+MD_BLK_NEW.map(([v,n])=>
     `<button type="button" class="mdb-chip" data-mdbtype="${v}">${mdBlkIc(v,14)}${n}</button>`).join('')+`</div>`;
-  const k=mdSrcCall(src);
-  if(k!=null)return `<div class="mdb-tools" role="radiogroup" aria-label="Registre de l'encadré">`+Object.keys(MD_CALL_LBL).map(x=>
-    `<button type="button" class="mdb-chip ${x}${x===k?' on':''}" data-mdbreg="${x}" role="radio" aria-checked="${x===k}">${calloutIcon(x)}${MD_CALL_LBL[x]}</button>`).join('')+`</div>`;
+  /* A844 : un ENCADRÉ, un TITRE et une LISTE ouverts n'ont plus de pastilles (registre, niveau, « Dans l'élément n : Image ·
+     Vidéo ») — 40 px sous le bloc pour des gestes que la barre fait déjà : « Encadré ▾ » et « Titre ▾ » cochent l'état en
+     cours (`mdMenuVal`), « ＋ Insérer › Image » demande « Dans l'élément n » (A772) ; « Sortir les images » passe dans « ⋯ ». */
   /* A774 (amende A609) : un TABLEAU ne s'ouvre plus en Markdown d'abord — le toucher ouvre la grille (`mdDocBind`) ;
      la pastille « Modifier en grille » du bloc ouvert, devenue sans objet, est retirée. Le bloc ouvert en texte (par
      « Modifier le Markdown ») n'avait donc pas de pastille — A799 lui rend un retour, ci-dessous. */
@@ -21119,10 +21126,6 @@ function mdBlkToolsHtml(src,p){
      texte ne se touche plus. Le bloc d'un tableau ouvert en texte porte donc « Revenir à la grille ». */
   {const l=String(src||'').split('\n');if(l.length>1&&MD_TROW.test(l[0])&&MD_TSEP.test(l[1]))
     return `<div class="mdb-tools"><button type="button" class="mdb-chip" data-mdbgrid>${uiIcon('table',14)}Revenir à la grille</button></div>`;}
-  // A798 : un titre ouvert change de niveau sur place — les trois crans du texte rédigé (A723).
-  {const m=/^(#{1,6})\s/.exec(String(src||''));if(m&&String(src).trim().indexOf('\n')<0){const k=m[1].length;
-    return `<div class="mdb-tools" role="radiogroup" aria-label="Niveau du titre">`+[[1,'Grand titre'],[2,'Titre de section'],[3,'Sous-titre']].map(([n,l])=>
-      `<button type="button" class="mdb-chip${n===k?' on':''}" data-mdbhx="${n}" role="radio" aria-checked="${n===k}"><b class="mdt-hx">H${n}</b>${l}</button>`).join('')+`</div>`;}}
   const id=mdSrcImg(src),im=id&&(p.images||[]).find(x=>x.id===id),data=im&&safeImg(im.data);
   if(data)return `<div class="mdb-imgv">${mdVueHtml(im,false,mdMedW(src,'img',id,0))}</div><div class="mdb-tools">`
     +`<button type="button" class="mdb-chip mdb-repl" data-mdbrepl="${esc(id)}">${uiIcon('camera',14)}Remplacer…</button></div>`;
@@ -21131,18 +21134,7 @@ function mdBlkToolsHtml(src,p){
   {const vid=mdSrcVid(src),v=vid&&(p.videos||[]).find(x=>x.id===vid);
     if(v)return `<div class="mdb-imgv">${mdVueHtml(v,true,mdMedW(src,'vid',vid,0))}</div><div class="mdb-tools">`
       +`<button type="button" class="mdb-chip mdb-repl" data-mdbvrepl="${esc(vid)}">${uiIcon('play',14)}Remplacer…</button></div>`;}
-  /* A772 : une LISTE ouverte offre « Image » · « Vidéo » DANS l'élément du curseur (le libellé suit le curseur,
-     `mdLmedPaint`) ; A642 : celle qui porte déjà des images d'élément peut les rendre à un bloc pleine colonne. */
-  if(/^\s*(?:[-*+]|\d{1,3}[.)])\s/.test(String(src||'').split('\n')[0]||'')){const n=mdUnlistN(src);
-    return `<div class="mdb-tools mdb-lmed" role="group" aria-label="Média dans un élément"><span class="mdb-lctx">Dans l’élément 1 :</span>`
-      +`<button type="button" class="mdb-chip" data-mdblmed="img">${uiIcon('camera',14)}Image</button><button type="button" class="mdb-chip" data-mdblmed="vid">${uiIcon('play',14)}Vidéo</button>`
-      +(n?`<button type="button" class="mdb-chip" data-mdbunlist>${uiIcon('camera',14)}${n>1?'Sortir les '+n+' images de la liste':'Sortir l’image de la liste'}</button>`:'')+`</div>`;}
   return '';}
-// A772 : l'élément du curseur dans le bloc liste ouvert (ou le dernier, curseur ailleurs) ; son libellé dans la rangée.
-const mdLmedItem=t=>{const v=t.value;let it=mdListItemAt(v,mdCaretLine(t));if(!it){const L=v.split('\n');for(let i=L.length-1;i>=0&&!it;i--)it=mdListItemAt(v,i);}return it;};
-function mdLmedPaint(t){const b=t&&t.closest('.mdb'),l=b&&b.querySelector('.mdb-lctx');if(!l)return;const it=mdLmedItem(t);
-  l.textContent=it?'Dans l’élément '+it.n+' :':'Placez le curseur dans un élément :';
-  b.querySelectorAll('[data-mdblmed]').forEach(x=>{x.disabled=!it;});}
 /* A642 — « SORTIR L'IMAGE DE LA LISTE » : les lignes image INDENTÉES d'une liste (images d'élément) passent après la
    liste, chacune en bloc pleine colonne (la forme d'avant). Fonction PURE (?__actest). */
 const MD_LIMG_RX=/^\s+!\[[^\]]{0,300}\]\(img:[A-Za-z0-9_-]{1,64}\)(?:\{(?:width=\d{1,3}%|align=(?:left|center|right))(?: (?:width=\d{1,3}%|align=(?:left|center|right)))?\})?\s*$/;
@@ -21273,8 +21265,8 @@ function mdDocHtml(p,open,grab,many,virt){if(grab>=0&&mdBlockRanges(p.body)[grab
     +`<button type="button" class="mdb-add" data-mdbadd="${R.length-1}">${uiIcon('plus',16,{sw:2.4})}Ajouter un bloc</button>`;}
 /* A798 — TROIS NIVEAUX DE TITRE (signalé : « ajout bloc Titre → arrive sur ## systématiquement ? ») : « Ajouter un bloc »
    n'offrait que « Titre de section » (##), alors que le texte rédigé a trois crans (A723) et que la barre de l'éditeur
-   les propose (menu « Titre »). Les trois y sont, sous leurs noms ; un titre ouvert change de niveau sur place
-   (`mdBlkToolsHtml`, `data-mdbhx`). `h` reste le ## : c'est le titre d'une section, le cas courant. */
+   les propose (menu « Titre »). Les trois y sont, sous leurs noms ; un titre ouvert change de niveau sur place par
+   « Titre ▾ », qui coche le niveau en cours (A844 ; les pastilles `data-mdbhx` sont retirées). `h` reste le ## : c'est le titre d'une section, le cas courant. */
 const MD_BLK_NEW=[['p','Paragraphe','texte','Texte'],['h1','Grand titre','# Titre','# Titre'],['h','Titre de section','## Titre','## Titre'],['h3','Sous-titre','### Sous-titre','### Sous-titre'],['c','Encadré','> [!WARNING]','> [!WARNING]\n> Texte'],
   ['ul','Liste','- élément','- Élément'],['task','Cases à cocher','- [ ] élément','- [ ] Élément'],['tbl','Tableau','grille, modèle','| Colonne | Colonne |\n|---|---|\n|  |  |'],
   ['img','Image ou photo','appareil, galerie',''],['hr','Séparateur','---','---']];
@@ -21577,7 +21569,7 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
         const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));return;}
       push(l.slice(0,blk.a).concat(nl,l.slice(blk.a+blk.n)).join('\n'));blk.n=nl.length;fit(t);
       // Les pastilles suivent le texte : un registre retapé à la main s'allume, un encadré défait les retire.
-      const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));mdLmedPaint(t);});
+      const w=t.closest('.mdb');w.querySelectorAll('.mdb-tools,.mdb-imgv').forEach(x=>x.remove());w.insertAdjacentHTML('afterbegin',mdBlkToolsHtml(t.value,p));});
     t.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.key==='Enter'&&(e.metaKey||e.ctrlKey))){e.preventDefault();e.stopPropagation();close();return;}
       if(e.isComposing||e.keyCode===229)return;
       // A829 : ⌘Z dans le bloc ouvert par une coupe, avant toute frappe — la coupe se défait d'un coup (anneau de l'éditeur).
@@ -21596,7 +21588,6 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(mdListEnter(t)){e.preventDefault();enter(t,{preventDefault(){},defaultPrevented:true},false);return;}
       enter(t,e,false);});
     t.addEventListener('paste',()=>{pasted=true;});
-    ['keyup','click','select'].forEach(ev=>t.addEventListener(ev,()=>mdLmedPaint(t)));mdLmedPaint(t);   // A772
     if(sel!==false){t.focus({preventScroll:true});const n=t.value.length,[x,y]=Array.isArray(sel)?sel:[n,n];t.setSelectionRange(x,y);
       const b=t.closest('.mdb'),q=b.getBoundingClientRect();if(!(tap&&(tap.y!=null||tap.y0!=null))&&(q.top<70||q.bottom>innerHeight-80))b.scrollIntoView({block:'center'});
       if(tap&&(tap.y!=null||tap.y0!=null))mdOpenKeep(t,tap);}};
@@ -21632,9 +21623,12 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       return openPickMenu(hostDe(x).host,{aria:'Ce bloc',title:'Ce bloc',trigger:x,...hostDe(x),...MDT_ACTIONS,
         options:[{val:'ap',name:'Bloc après',ic:uiIcon('plus',16,{sw:2.4})},{val:'av',name:'Bloc avant',ic:uiIcon('plus',16,{sw:2.4})},
           ...(R.length>1?[{val:'grab',name:'Déplacer',ic:'<b class="mdt-hx">⠿</b>'},{val:'sel',name:'Sélectionner',ic:uiIcon('check',16,{sw:2.6})}]:[]),
+          ...(()=>{const t=doc.querySelector('.mdb-ta'),n=t?mdUnlistN(t.value):0;   // A844 (A642) : était une pastille sous la liste ouverte
+            return n?[{val:'unlist',name:n>1?'Sortir les '+n+' images de la liste':'Sortir l’image de la liste',ic:uiIcon('camera',16)}]:[];})(),
           {val:'dup',name:'Dupliquer',ic:uiIcon('copy',16)},{val:'del',name:'Supprimer',ic:uiIcon('trash',16),danger:true}],
         onPick:v=>{if(v==='ap')return addMenu(x,i);if(v==='av')return addMenu(x,i-1);blkAct({dataset:{mdbact:v}});}});}
     if(k==='sel'){said();open=-1;paint(false);sel=new Set([i]);selMode=true;anchor=i;return selPaint();}
+    if(k==='unlist'){const t=doc.querySelector('.mdb-ta');if(!t)return;t.focus({preventScroll:true});mdSplice(t,0,t.value.length,mdUnlistImgs(t.value));open=-1;paint(false);return;}
     if(k==='dup')return apply(mdBlkDup(p.body,i));
     if(k==='del'){apply(mdBlkDel(p.body,i),-1);toast('Bloc supprimé — ↶ pour annuler.');return;}};
   {const tb=card.querySelector('.md-toolbar');if(tb)tb.addEventListener('click',e=>{const x=e.target.closest('[data-mdbact]');if(x&&tb.contains(x)){e.preventDefault();blkAct(x);}});}
@@ -21706,14 +21700,10 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       if(e.shiftKey||e.metaKey||e.ctrlKey){if(e.shiftKey&&anchor>=0){const [a,z]=[Math.min(anchor,i),Math.max(anchor,i)];for(let k=a;k<=z;k++)sel.add(k);}else{if(sel.has(i))sel.delete(i);else sel.add(i);anchor=i;}return selPaint();}   // A634
       return gripMenu(gb,i);}   // A833 : cliquer ouvre le menu du bloc (« Déplacer » y est) ; glisser déplace (dragstart)
     const x=e.target.closest('[data-mdbact]');if(x)return blkAct(x);
-    const hx=e.target.closest('[data-mdbhx]');if(hx){const t=doc.querySelector('.mdb-ta'),m=t&&/^#{1,6}(?=\s)/.exec(t.value);if(!m)return;   // A798
-      const k=+hx.dataset.mdbhx;if(k===m[0].length)return;mdSplice(t,0,m[0].length,'#'.repeat(k));paint();return;}
     /* A799 : retour à la grille depuis le bloc ouvert en texte. « Mettre à jour » referme le bloc (comme depuis « Ajouter un
        bloc ») ; « Annuler » ou « Modifier le Markdown » rendent le bloc tel qu'on l'avait laissé, en texte. */
     if(e.target.closest('[data-mdbgrid]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,0);
       mdTblOpen(t,{p,onEnd:how=>{if(how==='ok')return gridEnd(how);const t2=doc.querySelector('.mdb-ta');if(t2)t2.focus({preventScroll:true});}});return;}
-    const rg=e.target.closest('[data-mdbreg]');if(rg){const t=doc.querySelector('.mdb-ta');if(!t)return;t.setSelectionRange(0,t.value.length);
-      mdCalloutLines(t,MD_REG_WORD[rg.dataset.mdbreg]);paint();return;}
     const ty=e.target.closest('[data-mdbtype]');if(ty){const t=doc.querySelector('.mdb-ta'),v=ty.dataset.mdbtype,T=MD_BLK_NEW.find(x=>x[0]===v);if(!t||!T)return;
       t.focus({preventScroll:true});
       if(v==='img'){t.setSelectionRange(0,t.value.length);pickFile('image',files=>pImgTaker(p,t)(files),true);return;}
@@ -21721,12 +21711,6 @@ function mdDocBind(p,ta,bindField,setAct){const doc=document.getElementById('mdD
       mdSplice(t,0,t.value.length,T[3]);
       if(v==='hr'){open=-1;paint(false);return;}
       const ph=MD_BLK_PH[v],at=ph?T[3].lastIndexOf(ph):-1;if(at>=0)t.setSelectionRange(at,at+ph.length);return;}
-    if(e.target.closest('[data-mdbunlist]')){const t=doc.querySelector('.mdb-ta');if(!t)return;t.focus({preventScroll:true});mdSplice(t,0,t.value.length,mdUnlistImgs(t.value));open=-1;paint(false);return;}
-    /* A772 : « Image » · « Vidéo » DANS l'élément du curseur — la ligne s'écrit indentée sous lui, après ses médias. */
-    const lm=e.target.closest('[data-mdblmed]');if(lm){const t=doc.querySelector('.mdb-ta'),it=t&&mdLmedItem(t);if(!it)return;const k=lm.dataset.mdblmed;
-      mdMedMenu(lm,p,k,(k==='vid'?'Vidéo':'Image')+' dans l’élément '+it.n,it.text.length>60?it.text.slice(0,59)+'…':it.text,refs=>{
-        if(!document.contains(t))return;const r=mdListMediaIns(t.value,it.ln,refs);if(!r)return;
-        const L=r.v.split('\n'),c=L.slice(0,r.ln+1).join('\n').length;mdSplice(t,0,t.value.length,r.v,c,c);mdLmedPaint(t);},true);return;}
     const vr=e.target.closest('[data-mdbvrepl]');if(vr){const t=doc.querySelector('.mdb-ta'),old=(p.videos||[]).find(x=>x.id===vr.dataset.mdbvrepl);if(!t||!old)return;
       pickFile('video',async files=>{const ids=await vidAdmit(p,(files||[]).slice(0,1));if(!ids.length||!document.contains(t))return;
         const nv=p.videos.find(x=>x.id===ids[0]);if(nv&&old.scale)nv.scale=old.scale;
@@ -23704,8 +23688,10 @@ function openPickMenu(host,opts){
        qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. A801 : c'est désormais la
        règle de TOUT menu à filtre (« au doigt, rien n'ouvre le clavier tout seul », A793) — l'appelant qui veut le
        contraire passe `filtreAuToucher:false`. Une tablette au trackpad est au pointeur fin : le champ y prend le focus. */
-    if(!opts.keep){if(opts.filtreAuToucher!==false&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
-  else if(!opts.keep){const first=menu.querySelector('.mm-row');if(first)first.focus();}
+    if(!opts.keep){if(opts.filtreAuToucher!==false&&matchMedia('(pointer:coarse)').matches){const first=menu.querySelector('.mm-row[aria-selected="true"]')||menu.querySelector('.mm-row');if(first)first.focus({preventScroll:true});}else fl.focus();}}
+  // A844 : un menu qui a une valeur s'ouvre SUR elle (la rangée cochée), pas sur la première — le cadre du focus et la coche
+  // désignaient deux rangées différentes (« Encadré ▾ » d'un encadré « Attention » : focus sur « Alerte »).
+  else if(!opts.keep){const first=menu.querySelector('.mm-row[aria-selected="true"]')||menu.querySelector('.mm-row');if(first)first.focus();}
   // `keep` (v5.48.6) : le champ en cours garde le focus — donc le clavier — pendant qu'on choisit.
   if(opts.keep){menu.addEventListener('mousedown',e=>{if(e.target.closest('.mm-row'))e.preventDefault();});tapKeepsFocus(menu,'.mm-row');}
   veil.onclick=()=>close(false);
