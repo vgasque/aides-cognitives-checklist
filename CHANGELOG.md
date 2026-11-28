@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.168.0] — 2026-11-28
+Trouver un PDF parmi des centaines pour le lier ou le joindre (A846). Aucune mise à jour du serveur.
+- **Une recherche dans le choix d'un document** : par le nom du PDF, par l'aide ou le protocole qui le porte, et dans le
+  texte des PDF déjà sur l'appareil — avec la page : choisir un résultat lie directement vers cette page. Une faute de
+  frappe est corrigée, et c'est dit.
+- **Sans rien taper** : « Joindre un PDF… » en tête, les documents de l'élément, les cinq derniers utilisés, puis une
+  rangée par bibliothèque (et Perso) avec son nombre de documents, qui s'ouvre de A à Z.
+- **Les PDF des autres bibliothèques sont proposés** (« sera copié ») : choisi, le document est copié dans la
+  bibliothèque de l'élément.
+- Le même choix sert à « Lien vers un document », à « Ajouter › Document (PDF) » et à « Joindre un document existant ».
+
 ## [5.167.0] — 2026-11-28
 Lier un document PDF déjà présent dans la bibliothèque (A845). Aucune mise à jour du serveur.
 - **« ＋ Insérer › Lien vers un document » propose tous les documents utiles** : ceux du protocole, ceux des autres
@@ -244,10 +255,3 @@ A807). Aucune mise à jour du serveur.
   détail étaient coupés.
 - Complications : l'aide devient « 1 à 3, à tout moment », avec une ligne fixe sous les rangées, « Chaque bouton de plus
   dilue les autres. »
-
-## [5.153.0] — 2026-11-20
-La carte « Contenu rédigé » d'un protocole, plus claire au téléphone, surtout quand elle est vide (A805). Aucune mise à
-jour du serveur.
-- **Protocole vide : une seule chose à faire** (A805). La carte montre « Écrire le contenu » en pleine largeur, avec en dessous ce qu'on peut écrire (titres, listes, tableaux, images). L'interrupteur « Mise en forme en direct » et la consigne « touchez un passage pour le modifier » n'apparaissent qu'au premier bloc : avant, ils n'avaient rien à régler ni à toucher.
-- **« Coller du Markdown… »** sous l'invitation ouvre directement le champ de texte brut, pour coller un long texte d'un coup. C'est le même mode que l'interrupteur coupé.
-- **Avec du contenu, la tête tient sur une ligne** : « Contenu rédigé facultatif » et l'interrupteur côte à côte, le Plan dessous au téléphone. L'interrupteur dit « Mise en forme » au téléphone ; les lecteurs d'écran entendent toujours le nom complet. La consigne « Touchez un passage pour le modifier » a sa propre petite ligne.

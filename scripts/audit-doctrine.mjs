@@ -13838,6 +13838,7 @@ await sec('Éditeur · A845 lier un document existant ; le lien à la sélection
     document.querySelector('.md-toolbar [data-mdmenu="ins"]').click();await __acCalme(250);
     document.querySelector('.popmenu [data-pickopt="att"]').click();await __acCalme(300);
     o.menu=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+    {const f=document.querySelector('.popmenu .catmenu-filter');f.value='Reco ERC';f.dispatchEvent(new Event('input'));await __acCalme(400);}   // A846 : on le trouve en cherchant
     const x=document.querySelector('.popmenu [data-pickopt="x:aT845"]');if(x){x.click();await __acCalme(400);}
     o.body=state.pdraft.body;o.docs=(state.pdraft.docs||[]).map(d=>d.id).join(',');o.ouvert=!!document.querySelector('#mdDoc .mdb.on');
     o.carte=!!document.getElementById('addPdf')&&document.querySelectorAll('#pAttBox [data-attlink]').length===1;
@@ -13846,13 +13847,70 @@ await sec('Éditeur · A845 lier un document existant ; le lien à la sélection
     fiches.push(migrate({id:'fT845b',title:'Témoin A845 aide'}));await openEdit('fT845b');await __acCalme(500);
     const ad=document.getElementById('edAddOpen');if(ad){ad.click();await __acCalme(300);const b=document.querySelector('#edAddBody [data-edadd="att"]');if(b){b.click();await __acCalme(300);}}
     o.aide=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
-    const y=document.querySelector('.popmenu [data-pickopt="aT845"]');if(y){y.click();await __acCalme(400);}
+    {const f=document.querySelector('.popmenu .catmenu-filter');f.value='ERC';f.dispatchEvent(new Event('input'));await __acCalme(400);}
+    const y=document.querySelector('.popmenu [data-pickopt="x:aT845"]');if(y){y.click();await __acCalme(400);}
     o.aideDocs=((state.draft||{}).docs||[]).map(d=>d.id).join(',');
     return o;});
-  t('A845 · bloc ouvert : « Lien vers un document » offre le document de la bibliothèque et « Joindre un PDF… »',r.menu==='x:aT845,+',r.menu);
+  t('A845 · A846 · bloc ouvert : « Lien vers un document » offre « Joindre un PDF… » et l’espace à parcourir (le document s’y cherche)',r.menu==='+,b:',r.menu);
   t('A845 · le choisir l’ajoute au protocole et lie la SÉLECTION du bloc ; le bloc reste ouvert ; la carte « Documents » paraît sur place',
     !r.carteAvant&&r.body==='## Titre\n\nPremier paragraphe.\n\nVoir la [recommandation](att:aT845) ici.'&&r.docs==='aT845'&&r.ouvert&&r.carte,JSON.stringify(r));
-  t('A845 · aide : « Ajouter › Document (PDF) » propose « Depuis l’appareil… » puis le document de la bibliothèque, qui se joint',r.aide==='+,aT845'&&r.aideDocs==='aT845',r.aide+' / '+r.aideDocs);
+  t('A845 · aide : « Ajouter › Document (PDF) » propose « Joindre un PDF… », les récents, l’espace à parcourir ; le document se trouve et se joint',/^\+,(x:aT845,)?b:$/.test(r.aide)&&r.aideDocs==='aT845',r.aide+' / '+r.aideDocs);
+  await page.close();
+});
+
+/* ══ A846 — LIER UN PDF PARMI DES CENTAINES ══════════════════════════════════════════════════════════════════════════
+   Sans recherche : « Joindre » en tête, les récents, une rangée par espace à parcourir. En cherchant : le nom (pertinence),
+   l'élément qui le porte, le texte des PDF indexés (lien vers la page), vingt rangées par section puis « Et n autres »,
+   une faute corrigée et dite. Un PDF d'un autre espace est COPIÉ (id neuf, espace de l'élément — A689). */
+await sec('Éditeur · A846 lier un PDF parmi des centaines : recherche, parcourir, copie', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={};try{localStorage.removeItem('ac-mdlive');}catch(e){}
+    myLibraries.push({id:'L846a',name:'Urgences adultes',role:'admin'},{id:'L846b',name:'Pédiatrie',role:'reader'});
+    const mots=['adrénaline','amiodarone','kétamine','propofol','héparine'],sp=['L846a','L846b',null];
+    for(let i=0;i<60;i++){const id='a846n'+i,lib=sp[i%3];
+      await attPut({id,buf:new Uint8Array([37,80,68,70]).buffer,size:4000+i,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:null,scope:lib||''});
+      fiches.push(migrate({id:'f846n'+i,title:'Aide '+i,library:lib,status:'validated',docs:[{id,name:'Reco '+mots[i%5]+' '+i+'.pdf',size:4000+i}]}));
+      const h=ixOpen(ixBuild([['dose'],['surveillance',i===6?'hypotension':'tension']]));if(h)attIx.set(id,h);}
+    protocols.push(migrateProtocol({id:'p846',title:'Témoin A846',library:'L846a',body:'## Titre\n\nVoir la recommandation ici.'}));
+    await openProtocolEdit('p846');await __acCalme(500);
+    const ouvrir=async()=>{const p=[...document.querySelectorAll('#mdDoc p')].find(x=>/recommandation/.test(x.textContent));p.closest('.mdb').click();await __acCalme(300);
+      const t=document.querySelector('#mdDoc .mdb-ta'),i=t.value.indexOf('recommandation');t.focus();t.setSelectionRange(i,i+14);
+      document.querySelector('.md-toolbar [data-mdmenu="ins"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="att"]').click();await __acCalme(300);};
+    const lst=()=>[...document.querySelectorAll('.popmenu .mm-head,.popmenu [data-pickopt],.popmenu .mm-note')].map(x=>x.classList.contains('mm-head')?'['+x.textContent.trim()+']':x.classList.contains('mm-note')?'('+x.textContent.trim().slice(0,12)+')':x.dataset.pickopt);
+    const chercher=async q=>{const f=document.querySelector('.popmenu .catmenu-filter');f.value=q;f.dispatchEvent(new Event('input'));await __acCalme(400);return lst();};
+    await ouvrir();o.vide=lst().join(',');
+    o.nom=(await chercher('kétamine')).join(',');
+    o.faute=(await chercher('ketamnie')).slice(0,2).join(',');
+    o.texte=(await chercher('hypotension')).join(',');
+    o.borne=(await chercher('reco')).filter(x=>/^x:/.test(x)).length+'|'+(await chercher('reco')).some(x=>/^\(Et 40/.test(x));
+    // parcourir, retour
+    await chercher('');document.querySelector('.popmenu [data-pickopt="b:L846b"]').click();await __acCalme(300);
+    o.parcourir=document.querySelectorAll('.popmenu [data-pickopt]').length+'|'+!!document.querySelector('.popmenu .mm-back');
+    document.querySelector('.popmenu .mm-back').click();await __acCalme(300);o.retour=lst()[0];
+    // page liée depuis le texte (même espace : partagé)
+    await chercher('hypotension');document.querySelector('.popmenu [data-pickopt="x:a846n6#2"]').click();await __acCalme(400);
+    o.lien=state.pdraft.body;o.docs1=(state.pdraft.docs||[]).map(d=>d.id).join(',');
+    {const dn=document.querySelector('.md-ed [data-mdbact="done"]');if(dn)dn.click();await __acCalme(200);}
+    // copie depuis un autre espace (Pédiatrie → Urgences adultes)
+    const p2=[...document.querySelectorAll('#mdDoc p')].find(x=>/ici/.test(x.textContent));p2.closest('.mdb').click();await __acCalme(300);
+    {const t=document.querySelector('#mdDoc .mdb-ta');t.focus();t.setSelectionRange(t.value.length,t.value.length);}
+    document.querySelector('.md-toolbar [data-mdmenu="ins"]').click();await __acCalme(250);document.querySelector('.popmenu [data-pickopt="att"]').click();await __acCalme(300);
+    o.recents=lst().join(',');
+    const sub=(await chercher('amiodarone 1'),[...document.querySelectorAll('.popmenu [data-pickopt="x:a846n1"] .mm-sub')].map(x=>x.textContent).join(''));o.sub=sub;
+    document.querySelector('.popmenu [data-pickopt="x:a846n1"]').click();await __acCalme(800);
+    const d=state.pdraft.docs[state.pdraft.docs.length-1],rec=await IDB.getAtt(d.id);
+    o.copie={neuf:d.id!=='a846n1',scope:rec&&rec.scope,lie:state.pdraft.body.includes('(att:'+d.id+')')};
+    return o;});
+  t('A846 · sans recherche : « Joindre » en tête, puis une rangée par espace — la bibliothèque de l’élément d’abord',r.vide==='+,[Parcourir],b:L846a,b:L846b,b:',r.vide);
+  t('A846 · par le nom : les 12 « kétamine », dans les trois espaces, puis « Joindre »',/^\[Documents · 12\](,x:a846n\d+){12},\+$/.test(r.nom),r.nom);
+  t('A846 · une faute (« ketamnie ») : corrigée et dite',/^\(Aucun docu[^,]*\),\[Documents · 12\]/.test(r.faute),r.faute);
+  t('A846 · dans le texte des PDF : la page trouvée',r.texte==='[Dans le texte des PDF · 1],x:a846n6#2,+',r.texte);
+  t('A846 · borné : 20 rangées par section, puis « Et 40 autres »',r.borne==='20|true',r.borne);
+  t('A846 · parcourir un espace : sa liste entière, « ‹ Retour » ramène au menu',r.parcourir==='20|true'&&r.retour==='+',r.parcourir+' '+r.retour);
+  t('A846 · un résultat du texte lie VERS sa page ; même espace : le document est partagé',r.lien.includes('[recommandation](att:a846n6#p2)')&&r.docs1==='a846n6',JSON.stringify([r.lien,r.docs1]));
+  t('A846 · un PDF d’un autre espace se dit « sera copié » ; choisi, il est copié (id neuf) dans l’espace de l’élément, et lié',/Pédiatrie · .* · sera copié$/.test(r.sub)&&r.copie.neuf&&r.copie.scope==='L846a'&&r.copie.lie,JSON.stringify([r.sub,r.copie]));
   await page.close();
 });
 
