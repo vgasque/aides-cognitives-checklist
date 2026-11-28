@@ -13819,6 +13819,43 @@ await sec('Éditeur · A844 rien sous le bloc ouvert ; « Encadré ▾ » rempla
   await page.close();
 });
 
+/* ══ A845 — LIER UN DOCUMENT EXISTANT ; LE LIEN TOMBE OÙ ON L'A DEMANDÉ ══════════════════════════════════════════════
+   « ＋ Insérer › Lien vers un document » : les documents du protocole, ceux de la même bibliothèque, « Joindre un PDF… »
+   toujours. Bloc ouvert, le lien s'écrit sur la sélection du bloc (avant : au même décalage dans le champ entier, au
+   milieu d'un autre bloc). « Ajouter › Document (PDF) » propose aussi l'existant, dans l'aide comme dans le protocole. */
+await sec('Éditeur · A845 lier un document existant ; le lien à la sélection du bloc ouvert', async () => {
+  const page=await br.newPage({viewport:{width:1280,height:900}});
+  page.on('pageerror',e=>{ko++;console.log('  ✗ ERREUR PAGE : '+e.message);});
+  await page.goto(`http://localhost:${port}/index.html`);await amorce(page);
+  const r=await page.evaluate(async()=>{const o={};try{localStorage.removeItem('ac-mdlive');}catch(e){}
+    await attPut({id:'aT845',buf:new Uint8Array([37,80,68,70]).buffer,size:4,type:'application/pdf',createdAt:Date.now(),dirty:0,remotePath:null,scope:''});
+    fiches.push(migrate({id:'fT845',title:'ACR adulte',docs:[{id:'aT845',name:'Reco ERC.pdf',size:4}]}));
+    protocols.push(migrateProtocol({id:'pT845',title:'Témoin A845',body:'## Titre\n\nPremier paragraphe.\n\nVoir la recommandation ici.'}));
+    await openProtocolEdit('pT845');await __acCalme(500);
+    o.carteAvant=!!document.getElementById('addPdf');
+    const p=[...document.querySelectorAll('#mdDoc p')].find(x=>/recommandation/.test(x.textContent));p.closest('.mdb').click();await __acCalme(300);
+    const t=document.querySelector('#mdDoc .mdb-ta'),i=t.value.indexOf('recommandation');t.focus();t.setSelectionRange(i,i+14);
+    document.querySelector('.md-toolbar [data-mdmenu="ins"]').click();await __acCalme(250);
+    document.querySelector('.popmenu [data-pickopt="att"]').click();await __acCalme(300);
+    o.menu=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+    const x=document.querySelector('.popmenu [data-pickopt="x:aT845"]');if(x){x.click();await __acCalme(400);}
+    o.body=state.pdraft.body;o.docs=(state.pdraft.docs||[]).map(d=>d.id).join(',');o.ouvert=!!document.querySelector('#mdDoc .mdb.on');
+    o.carte=!!document.getElementById('addPdf')&&document.querySelectorAll('#pAttBox [data-attlink]').length===1;
+    {const dn=document.querySelector('.md-ed [data-mdbact="done"]');if(dn)dn.click();await __acCalme(200);}
+    // Aide : « Ajouter › Document (PDF) » propose l'existant
+    fiches.push(migrate({id:'fT845b',title:'Témoin A845 aide'}));await openEdit('fT845b');await __acCalme(500);
+    const ad=document.getElementById('edAddOpen');if(ad){ad.click();await __acCalme(300);const b=document.querySelector('#edAddBody [data-edadd="att"]');if(b){b.click();await __acCalme(300);}}
+    o.aide=[...document.querySelectorAll('.popmenu [data-pickopt]')].map(x=>x.dataset.pickopt).join(',');
+    const y=document.querySelector('.popmenu [data-pickopt="aT845"]');if(y){y.click();await __acCalme(400);}
+    o.aideDocs=((state.draft||{}).docs||[]).map(d=>d.id).join(',');
+    return o;});
+  t('A845 · bloc ouvert : « Lien vers un document » offre le document de la bibliothèque et « Joindre un PDF… »',r.menu==='x:aT845,+',r.menu);
+  t('A845 · le choisir l’ajoute au protocole et lie la SÉLECTION du bloc ; le bloc reste ouvert ; la carte « Documents » paraît sur place',
+    !r.carteAvant&&r.body==='## Titre\n\nPremier paragraphe.\n\nVoir la [recommandation](att:aT845) ici.'&&r.docs==='aT845'&&r.ouvert&&r.carte,JSON.stringify(r));
+  t('A845 · aide : « Ajouter › Document (PDF) » propose « Depuis l’appareil… » puis le document de la bibliothèque, qui se joint',r.aide==='+,aT845'&&r.aideDocs==='aT845',r.aide+' / '+r.aideDocs);
+  await page.close();
+});
+
 const bilanSec=sec.bilan();
 await br.close();srv.close();
 
