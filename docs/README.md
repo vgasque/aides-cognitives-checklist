@@ -8,7 +8,7 @@
 
 ## Comment la doctrine se cite
 
-Les décisions de conception portent des numéros **A1 → A845** à la v5.167.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
+Les décisions de conception portent des numéros **A1 → A846** à la v5.168.0 (lot v6.0 compris ; A694 et A705 non attribués) (et ça continue — la
 prochaine est A698), attribués dans
 l'ordre CHRONOLOGIQUE, par lot de travail. Le numéro EST l'adresse : la doctrine se cite
 elle-même par « cf. A140 », et c'est pourquoi le classement est par lot, jamais par thème — une
@@ -467,6 +467,7 @@ décision gagne, ne jamais reproposer une forme refusée).
 | A843 | `lot-v5-165.md` | Le bloc ouvert garde la taille et la graisse de son titre, et la prend en tapant « ## » (`taKind`) ; « ## » reste dans le cadre |
 | A844 | `lot-v5-166.md` | Rien sous le titre, la liste, l'encadré ouverts (pastilles retirées) ; « Titre ▾ » et « Encadré ▾ » cochent l'état en cours (`mdMenuVal`) ; « Encadré ▾ » remplace le registre (`mdCalloutLines`) ; « Sortir les images » dans « ⋯ » ; un menu à valeur s'ouvre sur elle |
 | A845 | `lot-v5-167.md` | Lier un document : ceux du protocole, ceux de la bibliothèque (`attachablePdfs`), « Joindre un PDF… » toujours (`mdDocMenu`) ; le lien à la sélection du bloc ouvert, carte « Documents » repeinte sur place (`_pAttPaint`) ; « Ajouter › Document (PDF) » propose l'existant (`attAddMenu`) |
+| A846 | `lot-v5-168.md` | Le choix d'un document (`pdfPick`) : recherche toujours présente (`openPickMenu` `recherche`), « Joindre » en tête, récents (`ac-pdf-rec`), « Parcourir » par espace ; nom, élément, texte des PDF et page ; vingt par section ; faute corrigée ; un PDF d'un autre espace copié |
 | (transverse) | `conventions-de-code.md` | La doctrine PAR COMPOSANT — registres, chrome, accueil, partage, stockage… (498 Ko : chercher par intitulé, cf. la carte d'`AGENTS.md`) |
 | (transverse) | `garde-fous-et-audits.md` | L'histoire et la raison de chaque garde-fou `check-*` et de chaque piège de harnais — l'ancienne section « Avant chaque commit » d'`AGENTS.md`, reprise à l'octet à l'audit des instructions (31/10/2026) ; `AGENTS.md` garde la procédure |
 | C1-C135 | `doctrine-css.md` | Les commentaires longs du `<style>` d'index.html, repris à l'octet (A292) : un renvoi « doctrine-css.md C‹n› » dans la feuille se résout ici, sous l'id cité |

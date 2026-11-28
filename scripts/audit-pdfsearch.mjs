@@ -83,14 +83,16 @@ try {
   // Porte « ＋ » → Document : c'est elle qui arme `pickFile`, donc le callback de destination.
   await page.click('.ed-door');
   await page.waitForSelector('#addModal.on, .ai-modal.on');
-  const [chooser] = await Promise.all([
-    page.waitForEvent('filechooser'),
-    page.evaluate(() => {
-      const b = [...document.querySelectorAll('.ai-modal.on button')].find(x => /Document/i.test(x.textContent));
-      if (!b) throw new Error('porte ＋ : aucune entrée « Document »');
-      b.click();
-    }),
-  ]);
+  /* A846 : « Document » ouvre le choix d'un document dès qu'un PDF existe ailleurs (seuls les sélecteurs de fichier en
+     dépendent : sans autre PDF, il part droit au fichier) — on y prend alors « Joindre un PDF… », vrai clic. */
+  const fc = page.waitForEvent('filechooser', { timeout: 8000 }).catch(() => null);
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.ai-modal.on button')].find(x => /Document/i.test(x.textContent));
+    if (!b) throw new Error('porte ＋ : aucune entrée « Document »');
+    b.click();
+  });
+  let chooser = await Promise.race([fc, page.waitForSelector('.popmenu [data-pickopt="+"]', { timeout: 8000 }).then(() => null).catch(() => null)]);
+  if (!chooser) [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('.popmenu [data-pickopt="+"]')]);
   /* ⚠ NOM HOSTILE, DÉLIBÉRÉMENT : le nom d'un document est une donnée entrante (il vient d'un
      fichier, et il est ÉDITABLE dans la rangée). Il traverse la rangée de résultat, un `title=`
      et un attribut — c'est le seul texte non maîtrisé de tout ce chantier, l'index n'exposant

@@ -323,7 +323,7 @@ const SURFACES = [
       const g=fiches.find(x=>x.id!==f.id);
       if(g){g.docs=[{id:'att-y',name:'Annexe partagée.pdf',size:by.byteLength}];await Data.put(g);}
       openEdit(f.id);await __acCalme(500);
-      openAttPicker(state.draft,()=>{}); } },
+      attAddMenu(state.draft,()=>{}); } },   // A846 : le choix de document (recherche, parcourir)
   /* ATELIER D'IMPORT (v5.7, A129) : la surface où l'on décide de ce qui entre dans la
      bibliothèque. Ouverte par son VRAI point d'entrée — `readImportFile`, l'entonnoir des trois
      portes — avec un fichier qui porte les DEUX natures et une pastille de relecture : sans

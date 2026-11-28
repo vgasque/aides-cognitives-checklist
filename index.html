@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-kxCqDFP8q4v5nXCNBIBk+8Tm4bzjBLKGE64jG7DYqBA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-HiF/dGC5fF1WDHbpcIHp8pGcbMCW0axTmEdKNV6ZnWA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10153,6 +10153,8 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
   .att-cloud.rx-in{color:var(--ink-2)}   /* A781 : en cours de réception — neutre, rien n'est à faire */
+  .mm-res{display:contents}   /* A846 : la zone que la recherche d'un menu réécrit */
+  .popmenu .mm-note{white-space:normal;margin:8px 10px;font-size:var(--t-meta)}
   .att-box{display:contents}   /* A845 : l'emplacement de la carte « Documents », repeinte sur place */
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
@@ -11410,7 +11412,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.167.0';
+const APP_VERSION='5.168.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21013,47 +21015,120 @@ function mdDropZone(p,actTa,bodyTa){let cache=null,last='',cellEl=null,liEl=null
     return true;};
   return {over,paint,clear,drop};}
 // Lien vers un document joint : libellé = la sélection, sinon le nom du fichier sans « .pdf ».
-const mdDocLink=(d,label)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+')';
-function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b));mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
-/* Choisir le document à lier. `typed` : « ](att: » vient d'être tapé, on complète l'identifiant.
-   A845 — UN SEUL MENU POUR TOUT DOCUMENT : ceux du protocole, puis ceux de la MÊME bibliothèque (`attachablePdfs`, la
-   provenance en sous-ligne — un document n'appartient qu'à un espace, A689), puis « Joindre un PDF… », toujours offert
-   tant que le plafond n'est pas atteint (il ne l'était qu'à un protocole sans document). Choisir un document d'ailleurs
-   l'ajoute au protocole ET le lie, d'un geste. Le lien s'écrit dans le champ ACTIF, à la sélection prise à l'ouverture
-   du menu — jamais dans le champ entier après un re-rendu : bloc ouvert, ces positions sont celles du bloc, et le lien
-   tombait ailleurs, au milieu d'un mot (mesuré, « ## Titre[Premier para](att:…)graphe. »). La carte « Documents » se
-   repeint sur place (`_pAttPaint`). */
+const mdDocLink=(d,label,pg)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+(pg?'#p'+pg:'')+')';   // A846 : `pg`, la page visée
+function mdLinkDoc(ta,d,pg){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b),pg);mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
 let _pAttPaint=null;
-function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[],ok=supportsAttachments(),plein=docs.length>=MAX_ATT_PER_ENTITY;
-  const ext=ok&&!plein?attachablePdfs(p):[],opts=[];
-  if(docs.length&&ext.length)opts.push({head:'Dans ce protocole'});
-  docs.forEach(d=>opts.push({val:d.id,name:d.name.replace(/\.pdf$/i,''),sub:'PDF · '+fmtBytes(d.size),ic:uiIcon('doc',18)}));
-  if(ext.length){opts.push({head:p.library?'Dans cette bibliothèque':'Dans Perso'});
-    ext.forEach(o=>opts.push({val:'x:'+o.id,name:String(o.name||'').replace(/\.pdf$/i,''),sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',18)}));}
-  if(ok&&!plein)opts.push({val:'+',name:'Joindre un PDF…',sub:'depuis l’appareil, lié au curseur',ic:uiIcon('plus',18)});
-  if(!opts.length)return;
+/* A846 — LIER UN PDF PARMI DES CENTAINES (planche « Modifier sans que ça saute », section 20 ; demande de l'auteur : « on
+   aura des centaines de PDF »). Une liste à plat de tous les documents ne se lit plus au-delà de quelques dizaines : le
+   choix d'un document a une RECHERCHE toujours présente, et sans recherche il montre peu de rangées.
+   · Sans recherche : « Joindre un PDF… » en tête (jamais au bout d'une liste), ceux de l'élément, les cinq derniers
+     utilisés (`ac-pdf-rec`, par espace, sur l'appareil), puis « Parcourir » : une rangée par espace (Perso, chaque
+     bibliothèque) avec son nombre de documents, qui ouvre sa liste de A à Z dans le même menu (« ‹ Retour »).
+   · En tapant : par le NOM, par l'ÉLÉMENT qui le porte et son espace (même pertinence que l'accueil, `qHitT`, Q_W),
+     puis DANS LE TEXTE des PDF indexés sur l'appareil (`ixSearch`) — choisir une page lie VERS elle (`#p14`). Vingt
+     rangées par section au plus, puis « Et n autres — précisez la recherche ». Un même PDF joint à plusieurs éléments
+     n'apparaît qu'une fois. Zéro résultat : la requête est corrigée au plus près d'un mot des noms (`dlev`), et le dit.
+   · Un PDF d'un AUTRE espace est COPIÉ dans celui de l'élément au moment du choix (`attCopyDocs` : un document
+     n'appartient qu'à un espace, A689) ; absent de l'appareil et introuvable, il n'est pas joint, et c'est dit. */
+const PDF_REC_K='ac-pdf-rec',PDF_SEC=20;
+function pdfRecents(){try{const v=JSON.parse(localStorage.getItem(spaceKey(PDF_REC_K))||'[]');
+  return Array.isArray(v)?v.filter(x=>typeof x==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(x)).slice(0,5):[];}catch(e){return [];}}
+function pdfRecent(id){try{localStorage.setItem(spaceKey(PDF_REC_K),JSON.stringify([id].concat(pdfRecents().filter(x=>x!==id)).slice(0,5)));}catch(e){}}
+const pdfEspace=lib=>lib?(libName(lib)||'Bibliothèque'):'Perso';
+const pdfNom=n=>String(n||'document.pdf').replace(/\.pdf$/i,'');
+// Tous les documents des AUTRES éléments vivants et visibles (un brouillon d'autrui ne se voit pas, comme `docOwners`).
+function pdfCatalog(ent){const mine=new Set((ent.docs||[]).map(a=>a&&a.id)),m=new Map();   // Map : un id sert de clé (règle 6)
+  (fiches||[]).concat(protocols||[]).forEach(e=>{if(!e||e.deletedAt||e.id===ent.id||!(canEditFiche(e)||e.status!=='draft'))return;
+    (e.docs||[]).forEach(a=>{if(!a||!a.id||mine.has(a.id))return;let x=m.get(a.id);
+      if(!x){x={id:a.id,name:a.name||'document.pdf',size:a.size||0,lib:e.library||null,from:[]};m.set(a.id,x);}
+      x.from.push(e.title||'Sans titre');});});
+  return [...m.values()];}
+// Pertinence (PURE) : chaque terme doit tomber quelque part ; nom > élément > espace (poids de la recherche d'accueil).
+function pdfRank(list,q,espace){const T=qTerms(q);if(!T.length)return [];const out=[];
+  for(const x of list){const nm=qSq(x.name),fr=qSq((x.from||[]).join(' ')),lb=qSq(espace(x.lib));let s=0,ok=true;
+    for(const t of T){const v=Math.max(Q_W.t[qHitT(nm,t)],Q_W.d[qHitT(fr,t)],Q_W.c[qHitT(lb,t)]);if(!v){ok=false;break;}s+=v;}
+    if(ok)out.push([s,x]);}
+  return out.sort((a,b)=>b[0]-a[0]||_collator.compare(a[1].name,b[1].name)).map(p=>p[1]);}
+// Zéro résultat : chaque terme de 5 lettres ou plus est rapproché du mot le plus proche des noms (1 faute, 2 au-delà de 8).
+function pdfCorrige(list,q){const voc=new Set();list.forEach(x=>{for(const w of qSq(x.name+' '+(x.from||[]).join(' ')).split(' '))if(w.length>=VOC_MIN)voc.add(w);});
+  if(voc.size>4000)return null;   // borne : la correction reste instantanée
+  let chg=false;const T=qTerms(q).map(t=>{if(t.length<5||voc.has(t))return t;const max=t.length>=8?2:1;let best=null,bd=max+1;
+    for(const w of voc){const d=dlev(t,w,max);if(d<bd){bd=d;best=w;}}
+    if(best){chg=true;return best;}return t;});
+  return chg?T.join(' '):null;}
+/* Le choix d'un document. `o` : `M` (hôte : {host,sheet,fixed,up,keep,trigger}), `titre`, `ici` (« Dans ce protocole »),
+   `lien` (vrai : choisir lie au curseur — `apres(ref,page)`), `rerender` (la carte « Documents »), `lib` (parcourir un espace). */
+function pdfPick(ent,o){const ok=supportsAttachments();if(!ok)return;
+  const plein=()=>(ent.docs||[]).length>=MAX_ATT_PER_ENTITY,cat=pdfCatalog(ent),moi=ent.library||null;
+  const docRow=(x,cle)=>{const autre=(x.lib||null)!==moi,de=x.from&&x.from.length?x.from[0]+(x.from.length>1?' + '+(x.from.length-1):''):'';
+    return {val:cle+x.id,name:pdfNom(x.name),sub:[de||(autre?'':'PDF'),autre&&o.lib===undefined?pdfEspace(x.lib):'',fmtBytes(x.size),autre?'sera copié':''].filter(Boolean).join(' · '),ic:uiIcon('doc',18)};};
+  const propres=()=>(ent.docs||[]).map(a=>({id:a.id,name:a.name,size:a.size,lib:moi,from:[]}));
+  const joindre={val:'+',name:'Joindre un PDF…',sub:o.lien?'depuis l’appareil, lié au curseur':'depuis l’appareil, '+fmtBytes(MAX_PDF_BYTES)+' au plus',ic:uiIcon('plus',18)};
+  const borne=(l,cle)=>l.slice(0,PDF_SEC).map(x=>docRow(x,cle(x))).concat(l.length>PDF_SEC?[{note:'Et '+(l.length-PDF_SEC)+' autre'+(l.length-PDF_SEC>1?'s':'')+' — précisez la recherche'}]:[]);
+  const recherche=q=>{
+    const base=o.lib!==undefined?cat.filter(x=>(x.lib||null)===o.lib):cat,mes=o.lib!==undefined?[]:propres();
+    if(!qTerms(q).length){
+      if(o.lib!==undefined)return [...base].sort((a,b)=>_collator.compare(a.name,b.name)).map(x=>docRow(x,'x:'));   // parcourir : toute la liste, A → Z
+      const R=[];if(!plein())R.push(joindre);
+      if(mes.length){R.push({head:o.ici});mes.forEach(x=>R.push(docRow(x,'d:')));}
+      const rec=pdfRecents().map(id=>cat.find(x=>x.id===id)).filter(Boolean);
+      if(rec.length&&!plein()){R.push({head:'Utilisés récemment'});rec.forEach(x=>R.push(docRow(x,'x:')));}
+      const par=new Map();cat.forEach(x=>{const k=x.lib||'';par.set(k,(par.get(k)||0)+1);});
+      if(par.size&&!plein()){R.push({head:'Parcourir'});
+        [...par.keys()].sort((a,b)=>((b||null)===moi)-((a||null)===moi)||_collator.compare(pdfEspace(a||null),pdfEspace(b||null)))
+          .forEach(k=>R.push({val:'b:'+k,name:pdfEspace(k||null),sub:par.get(k)+' document'+(par.get(k)>1?'s':'')+((k||null)===moi?' · '+(moi?'cette bibliothèque':'votre espace'):''),ic:uiIcon('book',18),chev:true}));}
+      return R;}
+    let qq=q,R=[],dit=null;
+    let parNom=pdfRank(mes.concat(plein()?[]:base),qq,pdfEspace);
+    const texte=qq2=>{const T=qTerms(qq2).filter(t=>t.length>=2);if(!T.length||!attIx||!attIx.size)return [];const out=[];
+      for(const x of mes.concat(plein()?[]:base)){const h=attIx.get(x.id);if(!h||h.none)continue;const pg=ixSearch(h,T);if(pg&&pg.length)out.push({x,pg});}
+      return out.sort((a,b)=>b.pg.length-a.pg.length||_collator.compare(a.x.name,b.x.name));};
+    let parTexte=texte(qq);
+    if(!parNom.length&&!parTexte.length){const c=pdfCorrige(mes.concat(base),q);if(c){qq=c;parNom=pdfRank(mes.concat(plein()?[]:base),qq,pdfEspace);parTexte=texte(qq);
+      if(parNom.length||parTexte.length)dit='Aucun document pour « '+q.trim()+' » — affiché : « '+c+' »';}}
+    if(dit)R.push({note:dit});
+    if(parNom.length){R.push({head:'Documents · '+parNom.length});R=R.concat(borne(parNom,x=>mes.some(m=>m.id===x.id)?'d:':'x:'));}
+    if(parTexte.length){R.push({head:'Dans le texte des PDF · '+parTexte.length});
+      parTexte.slice(0,PDF_SEC).forEach(({x,pg})=>{const m=mes.some(y=>y.id===x.id),pp=pg.slice(0,6).map(p=>p+1);
+        R.push({val:(m?'d:':'x:')+x.id+(o.lien?'#'+(pg[0]+1):''),name:pdfNom(x.name)+' · p. '+(pg[0]+1),
+          sub:pg.length+' page'+(pg.length>1?'s':'')+' : '+pp.join(', ')+(pg.length>pp.length?'…':'')+(m?'':' · '+(x.from[0]||pdfEspace(x.lib)))+((x.lib||null)!==moi?' · sera copié':''),ic:uiIcon('doc',18)});});
+      if(parTexte.length>PDF_SEC)R.push({note:'Et '+(parTexte.length-PDF_SEC)+' autres — précisez la recherche'});}
+    if(!parNom.length&&!parTexte.length)R.push({note:'Aucun document ne correspond.'});
+    if(!plein()&&o.lib===undefined)R.push(joindre);
+    return R;};
+  const choisir=async v=>{
+    if(v==='+'){const n=(ent.docs||[]).length;pickFile('pdf',upPdfTaker(ent,()=>{const r=(ent.docs||[])[n];if(r)pdfRecent(r.id);o.apres(r,0);}),true);return;}
+    if(v.slice(0,2)==='b:'){const k=v.slice(2)||null;pdfPick(ent,Object.assign({},o,{lib:k,titre:pdfEspace(k),retour:o}));return;}
+    const m=/^([dx]):([A-Za-z0-9_-]{1,64})(?:#(\d{1,4}))?$/.exec(v);if(!m)return;const pg=m[3]?+m[3]:0;
+    if(m[1]==='d'){const r=(ent.docs||[]).find(a=>a.id===m[2]);if(r){pdfRecent(r.id);o.apres(r,pg,true);}return;}
+    const x=pdfCatalog(ent).find(y=>y.id===m[2]);if(!x||plein())return;
+    let r={id:x.id,name:x.name,size:x.size};
+    if((x.lib||null)!==moi){   // A689 : un document d'un autre espace — l'élément reçoit SA copie, sous un id neuf
+      const c={docs:[{id:x.id,name:x.name,size:x.size}],library:moi};let perdus=1;
+      try{perdus=await attCopyDocs(c,x.lib||null);}catch(e){}
+      if(perdus||!c.docs.length){toast('△ « '+pdfNom(x.name)+' » n’est pas sur cet appareil et n’a pas pu être reçu — réessayez en ligne.',6000,true);return;}
+      r=c.docs[0];draftNewAtts.push(r.id);}
+    ent.docs=ent.docs||[];ent.docs.push(r);pdfRecent(r.id);o.apres(r,pg);};
+  const M=o.M,R0=recherche('');
+  openPickMenu(M.host,{aria:o.titre,title:o.titre,trigger:M.trigger,sheet:M.sheet,fixed:M.fixed,up:M.up,keep:M.keep,wide:true,
+    options:R0,recherche,placeholder:o.lib!==undefined?'Rechercher dans '+pdfEspace(o.lib)+'…':'Rechercher : nom, aide, texte du PDF…',
+    back:o.retour?{label:'Retour',fn:()=>pdfPick(ent,o.retour)}:null,
+    onPick:v=>{choisir(v);}});}
+/* Choisir le document à lier. `typed` : « ](att: » vient d'être tapé, on complète l'identifiant (et la page).
+   A845 : le lien s'écrit dans le champ ACTIF, à la sélection prise à l'ouverture du menu — jamais dans le champ entier
+   après un re-rendu : bloc ouvert, ces positions sont celles du bloc, et le lien tombait ailleurs, au milieu d'un mot
+   (mesuré, « ## Titre[Premier para](att:…)graphe. »). La carte « Documents » se repeint sur place (`_pAttPaint`). */
+function mdDocMenu(btn,p,ta,typed){if(!btn||!ta||!supportsAttachments())return;
   const H=mdMenuHost(btn),[a,b]=selBounds(ta);
-  const lier=d=>{if(!d||!document.contains(ta))return;ta.focus({preventScroll:true});
-    if(typed){mdSplice(ta,a,a,d.id+')');return;}ta.setSelectionRange(a,b);mdLinkDoc(ta,d);};
-  const peint=()=>{if(_pAttPaint)_pAttPaint();};
-  openPickMenu(H.host,{aria:'Lier un document joint',trigger:typed?ta:btn,options:opts,up:H.up,keep:H.keep,
-    head:typed?'':`<span class="hint">Le lien ouvre le document dans la visionneuse.</span>`,
-    onPick:id=>{const d=docs.find(x=>x.id===id);if(d)return lier(d);
-      if(id.slice(0,2)==='x:'){const o=attachablePdfs(p).find(x=>x.id===id.slice(2));if(!o)return;
-        p.docs=p.docs||[];const r={id:o.id,name:o.name,size:o.size};p.docs.push(r);lier(r);peint();return;}
-      const n=docs.length;
-      pickFile('pdf',upPdfTaker(p,()=>{lier((p.docs||[])[n]);peint();}),true);}});}
-/* A845 — « Ajouter › Document (PDF) » : s'il y a des documents ailleurs dans la même bibliothèque, un choix — depuis
-   l'appareil, ou l'un d'eux (sinon, droit au sélecteur de fichier, comme avant). Aide et protocole. */
-function attAddMenu(entity,rerender,trigger){const ext=(entity.docs||[]).length<MAX_ATT_PER_ENTITY?attachablePdfs(entity):[];
-  if(!ext.length){pickFile('pdf',upPdfTaker(entity,rerender),true);return;}
-  const M=pickMode(trigger);
-  openPickMenu(M.host,{aria:'Ajouter un document',title:'Ajouter un document',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,placeholder:'Rechercher un document…',
-    options:[{val:'+',name:'Depuis l’appareil…',sub:'PDF, '+fmtBytes(MAX_PDF_BYTES)+' au plus',ic:uiIcon('plus',18)},
-      {head:entity.library?'Dans cette bibliothèque':'Dans Perso'},
-      ...ext.map(o=>({val:o.id,name:String(o.name||'').replace(/\.pdf$/i,''),sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',18)}))],
-    onPick:v=>{if(v==='+'){pickFile('pdf',upPdfTaker(entity,rerender),true);return;}
-      const o=attachablePdfs(entity).find(x=>x.id===v);if(!o)return;entity.docs=entity.docs||[];entity.docs.push({id:o.id,name:o.name,size:o.size});rerender();}});}
+  const lier=(d,pg)=>{if(!d||!document.contains(ta))return;ta.focus({preventScroll:true});
+    if(typed){mdSplice(ta,a,a,d.id+(pg?'#p'+pg:'')+')');return;}ta.setSelectionRange(a,b);mdLinkDoc(ta,d,pg);};
+  pdfPick(p,{M:{host:H.host,up:H.up,keep:H.keep,trigger:typed?ta:btn},titre:'Lier un document',ici:'Dans ce protocole',lien:true,
+    apres:(r,pg,deja)=>{lier(r,pg);if(!deja&&_pAttPaint)_pAttPaint();}});}
+/* A845-A846 — « Ajouter › Document (PDF) » : le même choix (aide et protocole), sans lien. */
+function attAddMenu(entity,rerender,trigger){
+  if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
+  const M=pickMode(trigger),proto=protocols.some(x=>x.id===entity.id)||entity===state.pdraft;
+  pdfPick(entity,{M,titre:'Ajouter un document',ici:proto?'Dans ce protocole':'Dans cette aide',lien:false,apres:(r,pg,deja)=>{if(!deja)rerender();}});}
 /* DISPOSITION PAR LARGEUR (v5.44). Téléphone : « Écrire | Aperçu » dans la carte ; 780-999 : texte et
    aperçu côte à côte ; ≥ 1000 : l'aperçu vit dans la colonne de droite (inchangé). Partout : un
    « Plan » des titres (aller à une section), et l'aperçu SUIT le curseur — le bloc où l'on écrit est
@@ -23585,7 +23660,8 @@ function pickTitreRedit(t,trig){try{const a=pickMots(t),b=pickMots(trig&&trig.in
 function openPickMenu(host,opts){
   if(_pickClose)_pickClose(false);
   const O=opts.options||[],val=String(opts.value==null?'':opts.value),trigger=opts.trigger;
-  const row=o=>{if(o.head)return `<div class="mm-head" role="presentation">${esc(o.head)}${o.n?`<span class="mm-head-n">${esc(o.n)}</span>`:''}</div>`;   // intertitre (A424)
+  const row=o=>{if(o.note)return `<p class="mm-ctxl mm-note" role="presentation">${esc(o.note)}</p>`;   // A846 : une ligne qui renseigne (« Et 9 autres… »)
+    if(o.head)return `<div class="mm-head" role="presentation">${esc(o.head)}${o.n?`<span class="mm-head-n">${esc(o.n)}</span>`:''}</div>`;   // intertitre (A424)
     const v=String(o.val==null?'':o.val),sel=v===val;
     // `multi` (A475) : des CASES — plusieurs choix, la feuille reste ouverte ; `o.on` = 'true' · 'false' · 'mixed'.
     if(opts.multi)return menuRowHtml({label:o.name,sub:o.sub,ic:`<span class="mm-box">${uiIcon('check',14,{sw:3})}</span>`,ic2:o.ic,
@@ -23604,8 +23680,8 @@ function openPickMenu(host,opts){
      icône (＋, ···, ⋮) ou d'un bouton qui dit autre chose (« Autre… », « Bloc après »), il garde son titre. Le contexte,
      les notices et le nom du menu pour les lecteurs d'écran (`aria-label`) ne bougent pas. */
   const titre=opts.title&&!(!sheet&&pickTitreRedit(opts.title,trigger))?opts.title:'';
-  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${titre?`<h3 class="mm-title">${esc(titre)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
-    +O.map(row).join('')
+  menu.innerHTML=`<div class="popmenu-head">${opts.back?`<button type="button" class="mm-back" data-pickback>${uiIcon('back',16,{sw:2.4})}${esc(opts.back.label)}</button>`:''}${titre?`<h3 class="mm-title">${esc(titre)}</h3>`:''}${opts.ctx?`<p class="mm-ctxl">${esc(opts.ctx)}</p>`:''}${opts.head?`<div class="mm-ctx">${opts.head}</div>`:''}${opts.recherche||O.filter(o=>!o.head).length>(opts.seuilFiltre??8)?`<input class="catmenu-filter" type="text" placeholder="${esc(opts.placeholder||'Filtrer…')}" aria-label="${esc(opts.placeholder?opts.placeholder.replace(/…$/,''):'Filtrer '+(opts.aria||'les options').toLowerCase())}">`:''}</div>${opts.top||''}`
+    +(opts.recherche?`<div class="mm-res">${O.map(row).join('')}</div>`:O.map(row).join(''))   // A846 : la recherche réécrit cette zone
     +(opts.action?`<div class="catmenu-sep"></div><button type="button" class="catmenu-new">${esc(opts.action.label)}</button>`:'')
     /* A752 : `create` — la rangée « ＋ Nouvelle … » se change SUR PLACE en champ « Nom · Créer » ; le menu reste ouvert
        jusqu'à la création, puis se ferme sur le choix fait (`create.fn(nom)`, appelée après la fermeture). */
@@ -23689,9 +23765,10 @@ function openPickMenu(host,opts){
     r[(i+(e.key==='ArrowDown'?1:-1)+r.length)%r.length].focus();};
   document.addEventListener('pointerdown',out,true);
   document.addEventListener('keydown',keys,true);
-  menu.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;
+  const lie=root=>root.querySelectorAll('[data-pickopt]').forEach(b=>b.onclick=()=>{const v=b.dataset.pickopt;
     if(opts.multi){b.setAttribute('aria-checked',opts.onToggle(v,b.getAttribute('aria-checked')));return;}
     close(false);opts.onPick(v);});
+  lie(menu);
   {const d=menu.querySelector('[data-pickdone]');if(d)d.onclick=()=>close(true);}
   if(opts.action){const nw=menu.querySelector('.catmenu-new');nw.onclick=()=>{close(false);opts.action.fn();};}
   /* A752 — CRÉER SANS QUITTER LE CHOIX (demande de l'auteur : la rangée ouvrait le gestionnaire ; il fallait créer, fermer
@@ -23713,12 +23790,21 @@ function openPickMenu(host,opts){
     mkSync=()=>{const q=fq();nw.textContent=q&&!existe(q)?'＋ Créer « '+q+' »':lbl0;};}
   {const bk=menu.querySelector('[data-pickback]');if(bk)bk.onclick=()=>{close(false);opts.back.fn();};}   // v5.30.1 : « ‹ Actions », pour jongler entre les sous-feuilles
   const fl=menu.querySelector('.catmenu-filter');
-  if(fl){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
+  /* A846 — `recherche(q)` : l'appelant rend les rangées pour la requête (sections, pertinence, plafond) ; la zone est
+     réécrite à la frappe (pause de 120 ms), le champ garde le focus. Sans elle, le filtre par sous-chaîne d'avant. */
+  if(fl&&opts.recherche){const res=menu.querySelector('.mm-res');let tm=0;
+    // Au téléphone, la feuille monte au-dessus du clavier pendant qu'on cherche (même geste que la création, A752).
+    {const vv=window.visualViewport;if(sheet&&vv){const lever=()=>{if(!menu.isConnected)return;const k=Math.max(0,innerHeight-vv.height-vv.offsetTop);
+        menu.style.bottom=Math.round(k/zoomF())+'px';menu.style.maxHeight=Math.round(vv.height*.85/zoomF())+'px';};
+      vv.addEventListener('resize',lever);const o0=opts.onClose;opts.onClose=()=>{vv.removeEventListener('resize',lever);if(o0)o0();};}}
+    fl.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(!menu.isConnected)return;res.innerHTML=opts.recherche(fl.value).map(row).join('');lie(res);res.scrollTop=0;},120);});}
+  if(fl&&!opts.recherche){fl.addEventListener('input',()=>{const q=txNorm(fl.value);
       menu.querySelectorAll('.mm-row').forEach(r=>{r.style.display=(!q||txNorm(r.textContent).includes(q))?'':'none';});
       menu.querySelectorAll(':scope>.mm-head').forEach(h=>{let n=h.nextElementSibling,vis=false;   // un intertitre suit son groupe
         while(n&&n.classList.contains('mm-row')){if(n.style.display!=='none'){vis=true;break;}n=n.nextElementSibling;}
         h.style.display=vis?'':'none';});
-      if(mkSync)mkSync();});
+      if(mkSync)mkSync();});}
+  if(fl){
     /* A597 : `filtreAuToucher` — au doigt, le champ n'est PAS focalisé d'office (le clavier montait sur une feuille
        qu'on venait d'ouvrir pour choisir d'un tap) ; il l'est au pointeur fin et au clavier. A801 : c'est désormais la
        règle de TOUT menu à filtre (« au doigt, rien n'ouvre le clavier tout seul », A793) — l'appelant qui veut le
@@ -31010,10 +31096,6 @@ function boldBtnHtml(){return '<button type="button" class="ed-ic" data-bold ari
 // partagée — jamais inter-périmètres : le chemin de stockage cloud encode le périmètre de sécurité).
 // Rattacher un document existant = PARTAGE : le même id est référencé par plusieurs fiches, le
 // remplacer le met à jour partout, il ne disparaît que quand plus personne ne le référence (GC).
-function attachablePdfs(f){const have=new Set((f.docs||[]).map(a=>a.id));const seen=new Set(),out=[];
-  fiches.concat(protocols).forEach(x=>{if(x.id===f.id||x.deletedAt||(x.library||null)!==(f.library||null))return;
-    (x.docs||[]).forEach(a=>{if(!a||have.has(a.id)||seen.has(a.id))return;seen.add(a.id);out.push({id:a.id,name:a.name,size:a.size,from:x.title||'Sans titre'});});});
-  return out;}
 // Fieldset « Documents (PDF) » PARTAGÉ entre l'éditeur de fiche et l'éditeur de protocole
 // (même composant, mêmes garde-fous). `entity` = state.draft ou state.pdraft.
 // `mdLink` (référence) : chaque document se lie dans le texte — toucher, ou glisser vers le champ.
@@ -31021,7 +31103,7 @@ function attFieldsetHtml(entity,mdLink){
   return `<fieldset class="field ed-card"><label>Documents (PDF) <span class="hint">protocoles, recommandations — lisibles hors ligne</span></label>
       ${supportsAttachments()?`${(entity.docs||[]).map((a,i)=>`<div class="att-erow"><span class="att-ico">${uiIcon('doc',15)}</span><input type="text" data-attname="${i}" value="${esc(a.name)}" aria-label="Nom du document" placeholder="Nom du document"><span class="att-ix" data-ixstate="${esc(a.id)}"></span><span class="att-size">${fmtBytes(a.size)}</span>${mdLink?`<button type="button" class="ed-ic" data-attlink="${i}" draggable="true" aria-label="Lier « ${esc(a.name)} » dans le texte" title="Lier dans le texte, au curseur — ou glisser vers le texte">${uiIcon('link',16)}</button>`:''}<button type="button" class="ed-ic del" data-attrm="${i}" aria-label="Retirer le document">×</button></div>`).join('')}
       ${upDropHtml('pdf','addPdf','Ajouter un PDF ('+fmtBytes(MAX_PDF_BYTES)+' max)')}
-      ${(()=>{const n=attachablePdfs(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
+      ${(()=>{const n=pdfCatalog(entity).length;return n?`<button class="add-line" id="attAddBtn">+ Joindre un document existant (${n} disponible${n>1?'s':''})…</button>`:'';})()}`
       :`<p class="hint">Ce navigateur ne permet pas de stocker des documents hors ligne — ouvrez l'app dans un navigateur récent (ou installez-la sur l'écran d'accueil) pour joindre des PDF.</p>`}</fieldset>`;}
 // Écouteurs du fieldset Documents. Le BLOB est écrit immédiatement dans IndexedDB (il ne transite
 // jamais par le brouillon ni par le JSON) ; le brouillon ne reçoit que {id,name,size}. Les ids
@@ -31131,10 +31213,7 @@ function bindAttEditor(entity,rerender){
   upTarget('pdf',take);
   main.querySelectorAll('[data-attname]').forEach(inp=>inp.addEventListener('input',e=>{const a=(entity.docs||[])[+e.target.dataset.attname];if(a)a.name=e.target.value;}));
   main.querySelectorAll('[data-attrm]').forEach(b=>b.onclick=()=>{entity.docs.splice(+b.dataset.attrm,1);rerender();});
-  {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>openAttPicker(entity,rerender,ab);}}
-/* Sélecteur de document existant : fenêtre FILTRABLE (nom + fiche/protocole d'origine). Rempli à
-   l'ouverture, re-filtré à la frappe ; choisir un document ajoute la même référence {id,name,size}
-   au brouillon (document partagé, cf. attachablePdfs). */
+  {const ab=document.getElementById('attAddBtn');if(ab)ab.onclick=()=>attAddMenu(entity,rerender,ab);}}   // A846 : le même choix que « Ajouter › Document (PDF) »
 /* A641 — LES TROIS DERNIÈRES FENÊTRES DE CHOIX DEVIENNENT DES CHOIX (demande de l'auteur : « ok pour les 3 restants ») :
    « Joindre un document existant », « Voir aussi » et la cible d'une complication passent par `openPickMenu` — au bureau
    un déroulant FLOTTANT sous leur bouton (A638), au téléphone la feuille du bas ; champ de recherche dès le premier
@@ -31143,14 +31222,6 @@ function bindAttEditor(entity,rerender){
    ouvre (sinon la porte « Ajouter » de l'éditeur, ou le centre de la feuille au téléphone). */
 const pickTrig=t=>t||document.getElementById('edAddOpenP')||document.getElementById('edAddOpen')||null;
 const pickMode=t=>{const tr=pickTrig(t);return window.innerWidth>=780&&tr?{host:document.body,sheet:false,fixed:true,trigger:tr}:{host:document.body,sheet:true,fixed:false,trigger:tr};};
-function openAttPicker(entity,rerender,trigger){
-  if((entity.docs||[]).length>=MAX_ATT_PER_ENTITY){toast('⚠ '+MAX_ATT_PER_ENTITY+' documents maximum.');return;}
-  const opts=attachablePdfs(entity),M=pickMode(trigger);
-  if(!opts.length){toast('Aucun document à joindre : déposez un PDF, ou « Ajouter › Document (PDF) ».',4000,true);return;}
-  openPickMenu(M.host,{aria:'Joindre un document existant',title:'Joindre un document existant',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,seuilFiltre:0,placeholder:'Rechercher un document…',
-    ctx:'Le document sera partagé : le remplacer le mettra à jour partout où il sert.',
-    options:opts.map(o=>({val:o.id,name:o.name,sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',16)})),
-    onPick:v=>{const o=attachablePdfs(entity).find(x=>x.id===v);if(!o)return;entity.docs=entity.docs||[];entity.docs.push({id:o.id,name:o.name,size:o.size});rerender();}});}
 function openRelPicker(entity,rerender,trigger){
   if((entity.links||[]).length>=20){toast('⚠ 20 liens maximum.');return;}   // même plafond que migrate()
   const c=relCandidates(entity),M=pickMode(trigger);
@@ -34850,7 +34921,7 @@ function stripJsonFences(s){s=String(s==null?'':s).replace(/^\uFEFF/,'').trim();
    3. la synchro ne déduit JAMAIS un téléversement d'une ligne tirée : `attPlan` ne téléverse que vers l'espace
       de l'enregistrement ; cité seulement ailleurs, un binaire non modifié est RÉÉTIQUETÉ sans rien envoyer
       (celui qui a déplacé l'élément a déjà téléversé).
-   Partager un document entre éléments du MÊME espace reste voulu (`attachablePdfs`). */
+   Partager un document entre éléments du MÊME espace reste voulu (`pdfCatalog`, A846 : un document d'un autre espace y est copié). */
 // Espace désigné par un chemin distant — PURE (testée) : null = mon Perso, id = bibliothèque, undefined = ni l'un ni l'autre.
 function attPathSpace(path,me){const m=/^([ul])\/([A-Za-z0-9_-]{1,64})\/[A-Za-z0-9_-]{1,64}\.(?:pdf|mp4|webm|mov|webp|jpg|png|gif)$/.exec(String(path||''));
   if(!m)return undefined;return m[1]==='u'?(m[2]===me?null:undefined):m[2];}
@@ -36911,7 +36982,7 @@ let _authStep={mode:'email',email:'',msg:'',msgcls:''};let _authDelete=false;
    que wipeCurrentSpace la retirait — sa forme nue échappe aussi à la boucle générique, qui exige
    un `@`. Prouvé à la sonde deux moteurs, corrigé par construction (A290, v5.20.3). */
 const TEMP_PENDING_KEY='ac-temp-pending';   // A672
-const WIPE_SPACE_KEYS=['ac-lib-roles','ac-vpo-ko','ac-tbl-col','ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
+const WIPE_SPACE_KEYS=['ac-pdf-rec','ac-lib-roles','ac-vpo-ko','ac-tbl-col','ac-img-up','ac-img-ext','fiches_v1','cats_v1','sessions_v1','backups_v1','notes_v1','protocols_v1','ac-sync-cursor','ac-sync-cursor-prot','ac-lib-usage','ac-seeds-hidden','ac-pins','ac-colls','ac-suivi','ac-suivi-cursor','ac-held-edits','ac-att-del','ac-section','ac-home-colls','ac-home-fold','ac-link-fins','ac-prefs-remote','ac-temp-rules','ac-usage','ac-usage-pushmark','ac-home-sort','ac-home-compact',
   'ac-tags','ac-sync-sessions','ac-sync-cursor-sess','ac-sync-first-pending','ac-sess-backfilled','ac-accent','ac-read-mode','ac-home-group','ac-wake','ac-fold','ac-boot-log','ac-att-split'];   // A660 : quatre clés lues par `spaceKey`, oubliées ; A671 : dix autres (dont `ac-tags`, du texte saisi)
 async function wipeLocal(){
   // SCELLÉ : la reprise automatique d'IDB (_try) ne doit surtout pas rouvrir — elle recréerait la
