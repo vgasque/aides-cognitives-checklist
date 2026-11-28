@@ -330,7 +330,7 @@
 <!-- Content-Security-Policy : durcissement. connect-src limité à l'app + Supabase (empêche
      l'exfiltration d'un jeton vers un domaine tiers) ; object-src none ; base-uri self.
      'unsafe-inline' est requis car l'app est un fichier autonome (scripts/styles en ligne, sans build). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-aPVsjWOR7gCTM5iKkNdzhbUsQt9pCLd7wdgYynAWW5U='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://xhvgiwcxaqcnacuiovhh.supabase.co; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'sha256-Y0TOE3g+q8+NBqbU0W/zLiXNuGmaUxr7MFSuB/c4Q44=' 'sha256-LW1Sao6mU+58UTl+CzazQHdBTpAItBw8qGp8aPADZ24=' 'sha256-kxCqDFP8q4v5nXCNBIBk+8Tm4bzjBLKGE64jG7DYqBA='; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
 <!-- GARDE D'ENCADREMENT (v5.0.0, audit) — LA SEULE PROTECTION ANTI-CLICKJACKING QUI ATTEIGNE LA
      PRODUCTION. `_headers` pose `frame-ancestors 'none'` et `X-Frame-Options: DENY`, mais GitHub
      Pages — l'hébergement de production déclaré — IGNORE TOTALEMENT ce fichier, et `frame-ancestors`
@@ -10153,6 +10153,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
   /* Badge « binaire pas encore sur cet appareil » (v4.4.6) : registre ATTENTION, glyphe + texte. */
   .att-cloud{flex:none;font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
   .att-cloud.rx-in{color:var(--ink-2)}   /* A781 : en cours de réception — neutre, rien n'est à faire */
+  .att-box{display:contents}   /* A845 : l'emplacement de la carte « Documents », repeinte sur place */
   .att-erow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .att-erow input[type="text"]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--work);color:var(--ink)}
   /* Étroit (v5.44) : le nom garde toute la ligne, index · taille · outils passent dessous, à droite. */
@@ -11409,7 +11410,7 @@ var _tc=document.querySelector('meta[name="theme-color"]');if(_tc)_tc.setAttribu
    ===================================================================== */
 
 // IMPORTANT : garder ce numéro synchronisé avec la constante CACHE de sw.js (même version).
-const APP_VERSION='5.166.0';
+const APP_VERSION='5.167.0';
 const IS_TOUCH=!!(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches);
 // Nombre de fiches rendues par « page » dans la bibliothèque (bouton « Afficher plus » au-delà) :
 // évite de construire des centaines/milliers de cartes d'un coup sur une très grosse bibliothèque.
@@ -21015,18 +21016,44 @@ function mdDropZone(p,actTa,bodyTa){let cache=null,last='',cellEl=null,liEl=null
 const mdDocLink=(d,label)=>'['+(String(label||d.name.replace(/\.pdf$/i,'')).replace(/[[\]\n]/g,' ').trim()||'document')+'](att:'+d.id+')';
 function mdLinkDoc(ta,d){const [a,b,v]=selBounds(ta),seg=mdDocLink(d,v.slice(a,b));mdSplice(ta,a,b,seg,a+1,a+seg.indexOf(']('));}
 /* Choisir le document à lier. `typed` : « ](att: » vient d'être tapé, on complète l'identifiant.
-   Aucun document : la rangée joint un PDF (sélecteur de fichier, dans le même geste) puis le lie. */
-function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[];
-  const opts=docs.map(d=>({val:d.id,name:d.name.replace(/\.pdf$/i,''),sub:'PDF · '+fmtBytes(d.size),ic:uiIcon('doc',18)}));
-  if(!docs.length&&supportsAttachments())opts.push({val:'',name:'Joindre un PDF…',sub:'il sera lié à l’endroit du curseur',ic:uiIcon('plus',18)});
-  const H=mdMenuHost(btn);
+   A845 — UN SEUL MENU POUR TOUT DOCUMENT : ceux du protocole, puis ceux de la MÊME bibliothèque (`attachablePdfs`, la
+   provenance en sous-ligne — un document n'appartient qu'à un espace, A689), puis « Joindre un PDF… », toujours offert
+   tant que le plafond n'est pas atteint (il ne l'était qu'à un protocole sans document). Choisir un document d'ailleurs
+   l'ajoute au protocole ET le lie, d'un geste. Le lien s'écrit dans le champ ACTIF, à la sélection prise à l'ouverture
+   du menu — jamais dans le champ entier après un re-rendu : bloc ouvert, ces positions sont celles du bloc, et le lien
+   tombait ailleurs, au milieu d'un mot (mesuré, « ## Titre[Premier para](att:…)graphe. »). La carte « Documents » se
+   repeint sur place (`_pAttPaint`). */
+let _pAttPaint=null;
+function mdDocMenu(btn,p,ta,typed){if(!btn||!ta)return;const docs=p.docs||[],ok=supportsAttachments(),plein=docs.length>=MAX_ATT_PER_ENTITY;
+  const ext=ok&&!plein?attachablePdfs(p):[],opts=[];
+  if(docs.length&&ext.length)opts.push({head:'Dans ce protocole'});
+  docs.forEach(d=>opts.push({val:d.id,name:d.name.replace(/\.pdf$/i,''),sub:'PDF · '+fmtBytes(d.size),ic:uiIcon('doc',18)}));
+  if(ext.length){opts.push({head:p.library?'Dans cette bibliothèque':'Dans Perso'});
+    ext.forEach(o=>opts.push({val:'x:'+o.id,name:String(o.name||'').replace(/\.pdf$/i,''),sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',18)}));}
+  if(ok&&!plein)opts.push({val:'+',name:'Joindre un PDF…',sub:'depuis l’appareil, lié au curseur',ic:uiIcon('plus',18)});
+  if(!opts.length)return;
+  const H=mdMenuHost(btn),[a,b]=selBounds(ta);
+  const lier=d=>{if(!d||!document.contains(ta))return;ta.focus({preventScroll:true});
+    if(typed){mdSplice(ta,a,a,d.id+')');return;}ta.setSelectionRange(a,b);mdLinkDoc(ta,d);};
+  const peint=()=>{if(_pAttPaint)_pAttPaint();};
   openPickMenu(H.host,{aria:'Lier un document joint',trigger:typed?ta:btn,options:opts,up:H.up,keep:H.keep,
     head:typed?'':`<span class="hint">Le lien ouvre le document dans la visionneuse.</span>`,
-    onPick:id=>{const d=docs.find(x=>x.id===id);
-      if(d){if(!typed)return mdLinkDoc(ta,d);const [a]=selBounds(ta);mdSplice(ta,a,a,d.id+')');return;}
-      const [a,b]=selBounds(ta),n=docs.length;
-      pickFile('pdf',upPdfTaker(p,()=>{renderProtocolEdit();const t=document.getElementById('p-body'),x=(p.docs||[])[n];
-        if(t&&x){t.setSelectionRange(a,b);mdLinkDoc(t,x);}}),true);}});}
+    onPick:id=>{const d=docs.find(x=>x.id===id);if(d)return lier(d);
+      if(id.slice(0,2)==='x:'){const o=attachablePdfs(p).find(x=>x.id===id.slice(2));if(!o)return;
+        p.docs=p.docs||[];const r={id:o.id,name:o.name,size:o.size};p.docs.push(r);lier(r);peint();return;}
+      const n=docs.length;
+      pickFile('pdf',upPdfTaker(p,()=>{lier((p.docs||[])[n]);peint();}),true);}});}
+/* A845 — « Ajouter › Document (PDF) » : s'il y a des documents ailleurs dans la même bibliothèque, un choix — depuis
+   l'appareil, ou l'un d'eux (sinon, droit au sélecteur de fichier, comme avant). Aide et protocole. */
+function attAddMenu(entity,rerender,trigger){const ext=(entity.docs||[]).length<MAX_ATT_PER_ENTITY?attachablePdfs(entity):[];
+  if(!ext.length){pickFile('pdf',upPdfTaker(entity,rerender),true);return;}
+  const M=pickMode(trigger);
+  openPickMenu(M.host,{aria:'Ajouter un document',title:'Ajouter un document',sheet:M.sheet,fixed:M.fixed,trigger:M.trigger,placeholder:'Rechercher un document…',
+    options:[{val:'+',name:'Depuis l’appareil…',sub:'PDF, '+fmtBytes(MAX_PDF_BYTES)+' au plus',ic:uiIcon('plus',18)},
+      {head:entity.library?'Dans cette bibliothèque':'Dans Perso'},
+      ...ext.map(o=>({val:o.id,name:String(o.name||'').replace(/\.pdf$/i,''),sub:o.from+' · '+fmtBytes(o.size),ic:uiIcon('doc',18)}))],
+    onPick:v=>{if(v==='+'){pickFile('pdf',upPdfTaker(entity,rerender),true);return;}
+      const o=attachablePdfs(entity).find(x=>x.id===v);if(!o)return;entity.docs=entity.docs||[];entity.docs.push({id:o.id,name:o.name,size:o.size});rerender();}});}
 /* DISPOSITION PAR LARGEUR (v5.44). Téléphone : « Écrire | Aperçu » dans la carte ; 780-999 : texte et
    aperçu côte à côte ; ≥ 1000 : l'aperçu vit dans la colonne de droite (inchangé). Partout : un
    « Plan » des titres (aller à une section), et l'aperçu SUIT le curseur — le bloc où l'on écrit est
@@ -23146,7 +23173,7 @@ function renderProtocolEdit(){
     ${editorMetaFieldsHtml(p,'p',{titleLabel:'Titre du protocole',titlePh:'ex. Douleur thoracique — protocole de service',scopeHint:'où ranger ce protocole',codePh:'ex. PRO-ISR-01',fem:false})}
     ${''/* « PRÉSENT DANS LA PORTE ⇔ MASQUÉ QUAND VIDE » (règle de la v4.76.0, étendue aux
     références) : documents et « Voir aussi » disparaissent vides et se recréent par la porte. */}
-    ${(p.docs||[]).length?attFieldsetHtml(p,true):''}
+    <div class="att-box" id="pAttBox">${(p.docs||[]).length?attFieldsetHtml(p,true):''}</div>
     ${(p.links||[]).length?relFieldsetHtml(p):''}
     ${''/* K1 ÉTENDU AUX RÉFÉRENCES (maquettes) : chaque section est une CARTE, comme dans
     l'éditeur d'aide — l'auteur d'une référence et l'auteur d'une aide travaillent sur le même
@@ -23220,7 +23247,10 @@ function renderProtocolEdit(){
   const coarse=matchMedia('(pointer:coarse)').matches,RT=document.documentElement;
   /* A809 : la barre dit si le curseur est dans une liste (⇤ ⇥ à la place d'« Encadré »). */
   const tbar=main.querySelector('.md-toolbar');
-  const lvlPaint=f=>{if(!tbar)return;const [a,,v]=selBounds(f),ls=v.lastIndexOf('\n',a-1)+1;let e=v.indexOf('\n',a);if(e<0)e=v.length;
+  /* Seul le champ ACTIF peint la barre : bloc ouvert, le champ entier (caché) reçoit la recopie du bloc, et Chromium
+     y émet un `select` DIFFÉRÉ après `setSelectionRange` — qui repeignait la barre comme hors paragraphe : « ↵ À la
+     ligne » disparaissait à la première frappe (attrapé par le témoin A829, lot v5.167). */
+  const lvlPaint=f=>{if(!tbar||(act&&f!==act&&document.contains(act)))return;const [a,,v]=selBounds(f),ls=v.lastIndexOf('\n',a-1)+1;let e=v.indexOf('\n',a);if(e<0)e=v.length;
     const li=MD_LIST_RX.test(v.slice(ls,e)),pa=!li&&f.classList.contains('mdb-ta')&&mdBlkKind(v)==='p';
     tbar.classList.toggle('in-list',li);
     if(pa&&!tbar.classList.contains('in-para'))requestAnimationFrame(brFit);
@@ -23279,9 +23309,14 @@ function renderProtocolEdit(){
     tapKeepsFocus(tb,'[data-mdtool],[data-mdmenu]');}
   main.querySelectorAll('[data-mdtool]').forEach(b=>b.onclick=()=>tool(b.dataset.mdtool));
   main.querySelectorAll('[data-mdmenu]').forEach(b=>b.onclick=()=>mdMenuOpen(b,p,tool));
-  main.querySelectorAll('[data-attlink]').forEach(b=>{const d=()=>(p.docs||[])[+b.dataset.attlink];
+  const attLinks=()=>main.querySelectorAll('[data-attlink]').forEach(b=>{const d=()=>(p.docs||[])[+b.dataset.attlink];
     b.onclick=()=>{const x=d();if(x)mdLinkDoc(act,x);};
     b.ondragstart=e=>{const x=d();if(x)e.dataTransfer.setData('text/plain',mdDocLink(x,''));};});
+  attLinks();
+  /* A845 : la carte « Documents » se repeint SUR PLACE quand un document est joint depuis le texte — le bloc ouvert, son
+     curseur et le lien qu'on vient d'écrire restent (un re-rendu de l'éditeur les perdait). */
+  _pAttPaint=()=>{const bx=document.getElementById('pAttBox');if(!bx||!main.contains(bx)){_pAttPaint=null;return;}   // l'éditeur a été quitté entre-temps : rien à repeindre
+    bx.innerHTML=(p.docs||[]).length?attFieldsetHtml(p,true):'';bindAttEditor(p,renderProtocolEdit);attLinks();};
   {const sw=main.querySelector('[data-mdlive]');if(sw)sw.onchange=()=>{const an=mdAncre(p,ta);try{localStorage.setItem('ac-mdlive',sw.checked?'1':'0');}catch(e){}renderProtocolEdit();
     requestAnimationFrame(()=>mdAncreApply(an));};}   // A818 : changer de mode garde la même ligne à l'écran
   if(mds){const r=main.querySelector('.ed-sech-row');if(r)r.insertAdjacentHTML('beforeend',suiviEdPillHtml(p));}   // A636
@@ -31248,9 +31283,7 @@ function edAdd(f,kind,pre){
      de fichier de l'appareil. Le clic est déclenché DANS la même tâche que celui de la palette —
      `renderEditor()` est synchrone —, sinon l'activation utilisateur serait perdue et le
      navigateur refuserait d'ouvrir le sélecteur. */
-  if(kind==='att'){const b=document.getElementById('addPdf');
-    if(b)b.click();else pickFile('pdf',upPdfTaker(f,renderEditor),true);
-    return;}
+  if(kind==='att'){attAddMenu(f,renderEditor);return;}   // A845 : depuis l'appareil, ou un document de la bibliothèque
   if(kind==='img'){const b=document.getElementById('addImg');
     if(b)b.click();else pickFile('image',edImgTaker(f,null),true);
     return;}
@@ -31300,7 +31333,7 @@ function edAddProto(p,kind){
   /* Le document ouvre le SÉLECTEUR DE FICHIER : le clic doit partir DANS LA MÊME TÂCHE que celui
      de la palette (`renderProtocolEdit` est synchrone), sinon l'activation utilisateur est perdue
      et le navigateur refuse d'ouvrir le sélecteur (leçon v4.71.0). */
-  if(kind==='att'){pickFile('pdf',upPdfTaker(p,renderProtocolEdit),true);return;}
+  if(kind==='att'){attAddMenu(p,renderProtocolEdit);return;}   // A845 : depuis l'appareil, ou un document de la bibliothèque
   // A583 : l'image, au curseur du texte (le champ Markdown porte la position même masqué, A547).
   if(kind==='img'){pickFile('image',pImgTaker(p,document.getElementById('p-body')),true);return;}
   if(kind==='notion'){pickFile('data',files=>notionVerse(p,files,renderProtocolEdit),true);return;}   // A633

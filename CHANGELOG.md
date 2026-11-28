@@ -1,5 +1,16 @@
 # Journal des modifications
 
+## [5.167.0] — 2026-11-28
+Lier un document PDF déjà présent dans la bibliothèque (A845). Aucune mise à jour du serveur.
+- **« ＋ Insérer › Lien vers un document » propose tous les documents utiles** : ceux du protocole, ceux des autres
+  aides et protocoles de la même bibliothèque (avec leur provenance), et « Joindre un PDF… » — même quand le protocole a
+  déjà un document. Choisir un document d'ailleurs le joint au protocole et le lie, d'un geste.
+- **« Ajouter › Document (PDF) » propose aussi les documents de la bibliothèque**, dans une aide comme dans un protocole.
+- **Corrigé : en mise en forme en direct, joindre un PDF depuis le texte posait le lien au mauvais endroit**, au milieu
+  d'un autre paragraphe. Le lien va désormais sur le mot sélectionné, et le bloc reste ouvert.
+- **Corrigé : « ↵ À la ligne » disparaissait de la barre dès la première lettre tapée dans un paragraphe** (Chrome
+  récent).
+
 ## [5.166.0] — 2026-11-27
 Ouvrir un titre, une liste ou un encadré ne fait plus descendre la suite (A844). Aucune mise à jour du serveur.
 - **Plus de boutons sous un titre, une liste ou un encadré ouverts** (niveau du titre ; « Dans l'élément : Image ·
@@ -240,8 +251,3 @@ jour du serveur.
 - **Protocole vide : une seule chose à faire** (A805). La carte montre « Écrire le contenu » en pleine largeur, avec en dessous ce qu'on peut écrire (titres, listes, tableaux, images). L'interrupteur « Mise en forme en direct » et la consigne « touchez un passage pour le modifier » n'apparaissent qu'au premier bloc : avant, ils n'avaient rien à régler ni à toucher.
 - **« Coller du Markdown… »** sous l'invitation ouvre directement le champ de texte brut, pour coller un long texte d'un coup. C'est le même mode que l'interrupteur coupé.
 - **Avec du contenu, la tête tient sur une ligne** : « Contenu rédigé facultatif » et l'interrupteur côte à côte, le Plan dessous au téléphone. L'interrupteur dit « Mise en forme » au téléphone ; les lecteurs d'écran entendent toujours le nom complet. La consigne « Touchez un passage pour le modifier » a sa propre petite ligne.
-
-## [5.152.0] — 2026-11-20
-Dans les menus, les définitions ne s'affichent plus en bandeau bleu (A804). Aucune mise à jour du serveur.
-- **Une définition devient une note grise** (A804). Dans « Choisir la catégorie » (« Une seule par aide, avec sa couleur… ») et « Ajouter à une collection » (« Vos collections sont à vous seul… »), la phrase reste à sa place, sous le titre, mais sans cadre ni fond bleu. Elle ne se confond plus avec le choix en cours, l'anneau de sélection ou le bouton « Terminé », qui sont bleus eux aussi. Au téléphone, les catégories montent d'une trentaine de pixels.
-- **Ce qui dit la conséquence d'un geste reste en bleu** : quand on range des éléments de deux bibliothèques à la fois, l'avertissement « 2 bibliothèques différentes… » garde son bandeau. C'est lui qu'il faut lire avant de choisir.

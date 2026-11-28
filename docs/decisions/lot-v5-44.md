@@ -7,6 +7,8 @@
 
 ## A452 — lier un document joint sans recopier d'identifiant
 
+> **Amendé par A845** (lot v5.167) : le menu offre aussi les documents de la bibliothèque et « Joindre un PDF… » toujours ; le lien s'écrit à la sélection du bloc ouvert.
+
 `[texte](att:ID)` exigeait un identifiant que rien n'affichait. Trois chemins le posent désormais :
 « Insérer › Lien vers un document joint » (menu des PDF, libellé = sélection, sinon nom du fichier sans « .pdf »),
 la frappe de « ](att: » (le menu complète l'identifiant), et le bouton lien de chaque rangée « Documents (PDF) »
